@@ -3,10 +3,17 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
+import torchvision
+import matplotlib.pyplot as plt
 
-
-class MNISTDataset(Dataset):
-
+train_data = torchvision.datasets.MNIST(root='./data/',
+                                        train=True,
+                                        transform=torchvision.transforms.ToTensor(),
+                                        download=False)
+test_data = torchvision.datasets.MNIST(root='./data/',
+                                       train=False,
+                                       transform=torchvision.transforms.ToTensor(),
+                                       download=False)
 
 
 class FullyConnectedNet(nn.Module):
@@ -21,6 +28,11 @@ class FullyConnectedNet(nn.Module):
         return x
 
 
-net = FullyConnectedNet()
+net = FullyConnectedNet(10, 10)
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.SGD(net.parameters(), lr=0.001)
+
+print(train_data.data.size())
+print(test_data.data.size())
+plt.imshow(train_data.data[0], cmap='gray')
+plt.show()

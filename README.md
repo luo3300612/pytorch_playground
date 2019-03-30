@@ -16,3 +16,15 @@
 目前方案：
 * 先在jupyter-notebook里写完整的版本
 * 然后在.py文件中重新构建项目
+#### 对MNIST做或不做除以255有什么影响
+#### 使用或不使用momentum有什么影响
+#### SGD with momentum的公式是啥
+#### net在什么时候初始化参数？net.train还是什么？
+#### tensor.data和tensor.item有啥区别
+#### 输入图片的tensor是uint8还是float有啥区别
+### 坑
+dataset类的transform参数后要打括号，比如transform = ToTensor()，否则会报object...错误
+
+### 笔记
+[torch.no_grad](https://pytorch.org/docs/stable/autograd.html?highlight=no_grad#torch.autograd.no_grad)上下文管理器，节约计算资源
+CONV-relu-pool
