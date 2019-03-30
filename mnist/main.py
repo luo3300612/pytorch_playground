@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 train_data = torchvision.datasets.MNIST(root='./data/',
                                         train=True,
                                         transform=torchvision.transforms.ToTensor(),
-                                        download=False)
+                                        download=True)
 test_data = torchvision.datasets.MNIST(root='./data/',
                                        train=False,
                                        transform=torchvision.transforms.ToTensor(),
-                                       download=False)
+                                       download=True)
 
 
 class FullyConnectedNet(nn.Module):

@@ -28,3 +28,7 @@ dataset类的transform参数后要打括号，比如transform = ToTensor()，否
 ### 笔记
 [torch.no_grad](https://pytorch.org/docs/stable/autograd.html?highlight=no_grad#torch.autograd.no_grad)上下文管理器，节约计算资源
 CONV-relu-pool
+### TODO
+训练过程记录入log中
+可视化训练过程
+保存模型
