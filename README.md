@@ -46,3 +46,9 @@ CONV-relu-pool
 训练过程记录入log中 
 可视化训练过程 done
 保存模型 done
+
+## Regression
+### 问题
+自己打包的batch好像无法被forward接受为输入？
+更深的模型lr需要更小？
+使用怎样的损失函数才比较合理？
