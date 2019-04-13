@@ -30,33 +30,24 @@ X = (X - xmean) / xstd
 class FullyConnectedNet(nn.Module):
     def __init__(self):
         super(FullyConnectedNet, self).__init__()
-        self.fc1 = nn.Linear(1, 20)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(20, 20)
-        self.fc3 = nn.Linear(20, 20)
-        self.fc4 = nn.Linear(20, 20)
-        self.fc5 = nn.Linear(20, 1)
+        self.fc1 = nn.Linear(4, 1)
 
     def forward(self, x):
-        x = self.relu(self.fc1(x))
-        x = self.relu(self.fc2(x))
-        x = self.relu(self.fc3(x))
-        x = self.relu(self.fc4(x))
-        x = self.fc5(x)
+        x = self.fc1(x)
         return x
 
 
 if __name__ == '__main__':
 
     net = FullyConnectedNet()
-    optimizer = optim.SGD(net.parameters(), lr=0.001)
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
     criterion = nn.MSELoss()
-    n_epoch = 3000
+    n_epoch = 1000
 
     for epoch in range(n_epoch):
         epoch_loss = 0.0
         for i in range(X.shape[0]):
-            x = torch.tensor([X[i]])
+            x = torch.tensor([X[i] ** j for j in range(1, 5)])
             y = torch.tensor(Y[i])
 
             output = net(x)

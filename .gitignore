@@ -5,3 +5,4 @@ __pycache__/
 runs/
 mnist/.ipynb_checkpoints
 regression/model
+regression/runs/*
