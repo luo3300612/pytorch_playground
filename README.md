@@ -70,3 +70,13 @@ CONV-relu-pool
 * 更深的模型lr需要更小
 * SMOOTHL1Loss比MSE计算慢的多,shit，是因为用SMOOTHL1loss的时候每插电源....
 * Adam虽然快，但是到最后不稳定
+
+## ResNet
+### 问题
+resnet在进行skip connection的时候会出现不仅仅是channel增加（用0padding或投影
+解决），而且会出现feature map size减小的情况，对此，论文上给出的是when the 
+short cuts go across feature maps of two sizes, they are performed with 
+a stride of 2，即便使用了stride of 2，那是要用maxpool吗？还是要随机选一个元素
+呢？
+
+先用maxpool试试

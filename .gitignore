@@ -6,3 +6,4 @@ runs/
 mnist/.ipynb_checkpoints
 regression/model
 regression/runs/*
+resnet/data/*
