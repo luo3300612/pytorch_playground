@@ -8,3 +8,5 @@ regression/model
 regression/runs/*
 resnet/data/*
 resnet/.ipynb_checkpoints
+resnet/result/*
+resnet/runs/*
