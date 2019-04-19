@@ -5,6 +5,7 @@ import torchvision
 import torchvision.transforms as transforms
 import argparse
 import torch.optim as optim
+from tensorboardX import SummaryWriter
 
 
 class ResNet18(nn.Module):
@@ -103,6 +104,19 @@ class Flatten(nn.Module):
         return x.view(x.shape[0], -1)
 
 
+def adjust_learning_rate(optimizer, iteration):
+    """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
+    if iteration <= 32000:
+        lr = 0.1
+    elif 32000 < iteration <= 48000:
+        lr = 0.01
+    else:
+        lr = 0.001
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+    return lr
+
+
 # net = ResNet18(224, 224, in_channel=3, num_classes=10)
 #
 # x = torch.randn((20, 3, 224, 224))
@@ -111,10 +125,8 @@ class Flatten(nn.Module):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Pytorch ResNet CIFAR10 Example')
-    parser.add_argument('--batch-size', type=int, default=64, metavar='N',
+    parser.add_argument('--batch-size', type=int, default=128, metavar='N',
                         help='input batch size for training and testing (default: 64)')
-    parser.add_argument('--epochs', type=int, default=100, metavar='N',
-                        help='number of epochs to train(default:100)')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
 
@@ -132,14 +144,14 @@ if __name__ == '__main__':
                                                   transforms.ToTensor(),
                                                   transforms.Normalize((0.5,), (0.5,))
                                               ]),
-                                              download=True)
+                                              download=False)
     test_data = torchvision.datasets.MNIST(root='./data/',
                                            train=False,
                                            transform=transforms.Compose([
                                                transforms.ToTensor(),
                                                transforms.Normalize((0.5,), (0.5,))
                                            ]),
-                                           download=True)
+                                           download=False)
 
     train_loader = DataLoader(train_data,
                               batch_size=batch_size,
@@ -151,25 +163,38 @@ if __name__ == '__main__':
                              num_workers=4)
 
     net = ResNet18(32, 32, 3, 10).to(device)
-    n_epoch = args.epochs
 
-    criterion = nn.LogSoftmax()
-    optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.5)
 
-    for epoch in range(n_epoch):
+    writer = SummaryWriter()
+
+    iter_idx = 0
+    n_iter = 64000
+    val_interval = 100
+    print_interval = 10
+    while True:
         for batch_idx, (data, target) in enumerate(train_loader):
+            iter_idx += 1
+            lr = adjust_learning_rate(optimizer, iter_idx)
             output = net(data)
             loss = criterion(output, target)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            if batch_idx % 10 == 0:
-                print(f'Epoch:{epoch}/{n_epoch}\tBatch:{batch_idx}\tLoss:{loss.item():.6f}')
+            if iter_idx % print_interval == 0:
+                print(f'Iter: {iter_idx}/{n_iter}\tLoss:{ loss.item():.6f}\tLR: {lr}')
+            writer.add_scalar("train/train_loss", loss.item(), iter_idx)
 
-        with torch.no_grad():
-            test_loss = 0.0
-            for data, target in test_loader:
-                output = net(data)
-                loss = criterion(output, target)
-                test_loss += loss.item() * batch_size
-            print(f'Epoch:{epoch} Finished\t Test Loss{test_loss / len(test_loader):.6f}')
+            if iter_idx % val_interval == 0:
+                with torch.no_grad():
+                    test_loss = 0.0
+                    for data, target in test_loader:
+                        output = net(data)
+                        loss = criterion(output, target)
+                        test_loss += loss.item() * batch_size
+                    print(f'Iter: {iter_idx}/{n_iter} Finished\t Test Loss: {test_loss / len(test_loader):.6f}')
+                    writer.add_scalar("train/train_loss", test_loss / len(test_loader), iter_idx)
+            if iter_idx == n_iter:
+                print("Done")
+                break

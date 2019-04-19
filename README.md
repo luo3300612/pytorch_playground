@@ -72,6 +72,12 @@ CONV-relu-pool
 * Adam虽然快，但是到最后不稳定
 
 ## ResNet
+使用ResNet拟合CIFAR10
+### 训练参数
+这是来自[ResNet论文](https://arxiv.org/abs/1512.03385)的CIFAR10训练参数
+* mini batch 128
+* 初始学习率0.1，在32k和48k次迭代时除以10
+* 在64k次迭代时终止
 ### 问题
 resnet在进行skip connection的时候会出现不仅仅是channel增加（用0padding或投影
 解决），而且会出现feature map size减小的情况，对此，论文上给出的是when the 
