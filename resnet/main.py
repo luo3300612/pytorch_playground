@@ -6,6 +6,9 @@ import torchvision.transforms as transforms
 import argparse
 import torch.optim as optim
 from tensorboardX import SummaryWriter
+import sys
+
+device = torch.device("cpu")
 
 
 class ResNet18(nn.Module):
@@ -91,7 +94,8 @@ class ResNetBlock(nn.Module):
             if i is 0 and self.down_sample:
                 x = self.maxpool(x)
                 shape = x.shape[0], self.out_channel - self.in_channel, x.shape[2], x.shape[3]
-                out = out + torch.cat((x, torch.zeros(shape)), dim=1)
+                out = out + torch.cat((x, torch.zeros(shape).to(device)),
+                                      dim=1)  # fixme: when eval, device is undefined
             else:
                 out = out + x
             out = self.relu(out)
@@ -142,25 +146,25 @@ if __name__ == '__main__':
                                               train=True,
                                               transform=transforms.Compose([
                                                   transforms.ToTensor(),
-                                                  transforms.Normalize((0.5,), (0.5,))
+                                                  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                                               ]),
                                               download=False)
-    test_data = torchvision.datasets.MNIST(root='./data/',
-                                           train=False,
-                                           transform=transforms.Compose([
-                                               transforms.ToTensor(),
-                                               transforms.Normalize((0.5,), (0.5,))
-                                           ]),
-                                           download=False)
+    test_data = torchvision.datasets.CIFAR10(root='./data/',
+                                             train=False,
+                                             transform=transforms.Compose([
+                                                 transforms.ToTensor(),
+                                                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                                             ]),
+                                             download=True)
 
     train_loader = DataLoader(train_data,
                               batch_size=batch_size,
                               shuffle=True,
-                              num_workers=4)
+                              num_workers=1)
     test_loader = DataLoader(test_data,
                              batch_size=batch_size,
                              shuffle=True,
-                             num_workers=4)
+                             num_workers=1)
 
     net = ResNet18(32, 32, 3, 10).to(device)
 
@@ -173,8 +177,12 @@ if __name__ == '__main__':
     n_iter = 64000
     val_interval = 100
     print_interval = 10
+
+    best_test_loss = 3
     while True:
         for batch_idx, (data, target) in enumerate(train_loader):
+            data = data.to(device)
+            target = target.to(device)
             iter_idx += 1
             lr = adjust_learning_rate(optimizer, iter_idx)
             output = net(data)
@@ -183,18 +191,25 @@ if __name__ == '__main__':
             loss.backward()
             optimizer.step()
             if iter_idx % print_interval == 0:
-                print(f'Iter: {iter_idx}/{n_iter}\tLoss:{ loss.item():.6f}\tLR: {lr}')
+                print(f'Iter: {iter_idx}/{n_iter}\tLoss:{loss.item():.6f}\tLR: {lr}')
             writer.add_scalar("train/train_loss", loss.item(), iter_idx)
 
             if iter_idx % val_interval == 0:
+                test_loss = 0.0
                 with torch.no_grad():
-                    test_loss = 0.0
                     for data, target in test_loader:
+                        data = data.to(device)
+                        target = target.to(device)
                         output = net(data)
                         loss = criterion(output, target)
-                        test_loss += loss.item() * batch_size
-                    print(f'Iter: {iter_idx}/{n_iter} Finished\t Test Loss: {test_loss / len(test_loader):.6f}')
-                    writer.add_scalar("train/train_loss", test_loss / len(test_loader), iter_idx)
+                        test_loss += loss.item() * data.shape[0]
+                    print(f'Iter: {iter_idx}/{n_iter}\tTest Loss: {test_loss / len(test_data):.6f}')
+                    writer.add_scalar("train/test_loss", test_loss / len(test_loader), iter_idx)
+                if test_loss / len(test_data) < best_test_loss:
+                    torch.save(net, r"E:\pycharmprojects\pytorch_playground\resnet\result\model{}".format(iter_idx))
+                    print(f"test loss: {test_loss / len(test_data)} < best: {best_test_loss},save model")
+                    best_test_loss = test_loss / len(test_data)
+
             if iter_idx == n_iter:
                 print("Done")
                 break
