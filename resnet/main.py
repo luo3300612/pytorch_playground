@@ -7,6 +7,9 @@ import argparse
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 import sys
+import torch.nn.functional as F
+
+torchvision.models.resnet18()
 
 device = torch.device("cpu")
 
@@ -15,12 +18,13 @@ class ResNet18(nn.Module):
     def __init__(self, H, W, in_channel=3, num_classes=10):
         super(ResNet18, self).__init__()
         self.conv1 = nn.Conv2d(in_channel, 64, kernel_size=7, stride=2, padding=3)
+        # self.bn1 = nn.BatchNorm2d(64)
         self.maxpool = nn.MaxPool2d(2, 2)
         self.block1 = ResNetBlock(64, 64, 2, down_sample=False)
         self.block2 = ResNetBlock(64, 128, 2)
         self.block3 = ResNetBlock(128, 256, 2)
         self.block4 = ResNetBlock(256, 512, 2)
-        self.avgpool = nn.AvgPool2d((H // (2 ** 5), W // (2 ** 5)))
+        self.avgpool = nn.AvgPool2d((H // (2 ** 5), W // (2 ** 5)))  # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.flatten = Flatten()
         self.fc = nn.Linear(512, num_classes)
 
@@ -93,9 +97,11 @@ class ResNetBlock(nn.Module):
             out = self.__getattr__(f"conv{i + 1}_2")(out)
             if i is 0 and self.down_sample:
                 x = self.maxpool(x)
-                shape = x.shape[0], self.out_channel - self.in_channel, x.shape[2], x.shape[3]
-                out = out + torch.cat((x, torch.zeros(shape).to(device)),
-                                      dim=1)  # fixme: when eval, device is undefined
+                x = F.pad(x, (0, 0, 0, 0, 0, self.out_channel - self.in_channel))
+                out = out + x
+                # shape = x.shape[0], self.out_channel - self.in_channel, x.shape[2], x.shape[3]
+                # out = out + torch.cat((x, torch.zeros(shape).to(device)),
+                #                       dim=1)  # fixme: when load model in notebook, device is undefined
             else:
                 out = out + x
             out = self.relu(out)
@@ -108,14 +114,14 @@ class Flatten(nn.Module):
         return x.view(x.shape[0], -1)
 
 
-def adjust_learning_rate(optimizer, iteration):
+def adjust_learning_rate(optimizer, iteration,init_lr=0.1):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
     if iteration <= 32000:
-        lr = 0.1
+        lr = init_lr
     elif 32000 < iteration <= 48000:
-        lr = 0.01
+        lr = init_lr/10
     else:
-        lr = 0.001
+        lr = init_lr/100
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     return lr
@@ -130,7 +136,7 @@ def adjust_learning_rate(optimizer, iteration):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Pytorch ResNet CIFAR10 Example')
     parser.add_argument('--batch-size', type=int, default=128, metavar='N',
-                        help='input batch size for training and testing (default: 64)')
+                        help='input batch size for training and testing (default: 128)')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
 
@@ -166,10 +172,11 @@ if __name__ == '__main__':
                              shuffle=True,
                              num_workers=1)
 
-    net = ResNet18(32, 32, 3, 10).to(device)
+    # net = ResNet18(32, 32, 3, 10).to(device)
+    net = torchvision.models.resnet18(False, **{"num_classes": 10})
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.5)
+    optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
 
     writer = SummaryWriter()
 
@@ -184,7 +191,7 @@ if __name__ == '__main__':
             data = data.to(device)
             target = target.to(device)
             iter_idx += 1
-            lr = adjust_learning_rate(optimizer, iter_idx)
+            lr = adjust_learning_rate(optimizer, iter_idx, init_lr=0.01)
             output = net(data)
             loss = criterion(output, target)
             optimizer.zero_grad()
@@ -197,18 +204,24 @@ if __name__ == '__main__':
             if iter_idx % val_interval == 0:
                 test_loss = 0.0
                 with torch.no_grad():
+                    acc = 0.0
                     for data, target in test_loader:
                         data = data.to(device)
                         target = target.to(device)
                         output = net(data)
+                        pred_label = torch.argmax(output, dim=1)
+                        acc += torch.sum(pred_label == target).item()
                         loss = criterion(output, target)
                         test_loss += loss.item() * data.shape[0]
-                    print(f'Iter: {iter_idx}/{n_iter}\tTest Loss: {test_loss / len(test_data):.6f}')
-                    writer.add_scalar("train/test_loss", test_loss / len(test_loader), iter_idx)
-                if test_loss / len(test_data) < best_test_loss:
-                    torch.save(net, r"E:\pycharmprojects\pytorch_playground\resnet\result\model{}".format(iter_idx))
-                    print(f"test loss: {test_loss / len(test_data)} < best: {best_test_loss},save model")
-                    best_test_loss = test_loss / len(test_data)
+                    acc = acc / len(test_data)
+                    test_loss = test_loss / len(test_data)
+                    print(f'Test Loss: {test_loss:.6f},acc:{acc:.4f}')
+                    writer.add_scalar("train/test_loss", test_loss, iter_idx)
+                    writer.add_scalar("train/acc", acc, iter_idx)
+                if test_loss < best_test_loss:
+                    torch.save(net.state_dict(), r"./result/model{}".format(iter_idx))
+                    print(f"test loss: {test_loss:.6f} < best: {best_test_loss:.6f},save model")
+                    best_test_loss = test_loss
 
             if iter_idx == n_iter:
                 print("Done")
