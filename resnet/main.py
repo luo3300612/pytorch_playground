@@ -112,7 +112,7 @@ class ResNet18_new(nn.Module):
         x = self.block3(x)
         x = self.block4(x)
         x = self.avgpool(x)
-        x = x.view((x.shape[0],-1))
+        x = x.view((x.shape[0], -1))
         x = self.fc(x)
         return x
 
@@ -261,7 +261,7 @@ if __name__ == '__main__':
                              num_workers=1)
 
     # net = ResNet18(32, 32, 3, 10).to(device)
-    net = torchvision.models.resnet18(False, **{"num_classes": 10})
+    net = torchvision.models.resnet18(False, **{"num_classes": 10}).to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
