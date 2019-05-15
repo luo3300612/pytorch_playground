@@ -1,5 +1,0 @@
-2019-05-15 22:10:28,921 - /home/luo3300612/Workspace/PycharmWS/pytorch_playground/resnet/utils.py[line:18] - INFO: Iter: 10/64000	Loss:2.300109	LR: 0.01
-2019-05-15 22:10:32,475 - /home/luo3300612/Workspace/PycharmWS/pytorch_playground/resnet/utils.py[line:18] - INFO: Iter: 20/64000	Loss:2.269390	LR: 0.01
-2019-05-15 22:10:36,442 - /home/luo3300612/Workspace/PycharmWS/pytorch_playground/resnet/utils.py[line:18] - INFO: Iter: 30/64000	Loss:2.237818	LR: 0.01
-2019-05-15 22:10:40,154 - /home/luo3300612/Workspace/PycharmWS/pytorch_playground/resnet/utils.py[line:18] - INFO: Iter: 40/64000	Loss:2.132238	LR: 0.01
-2019-05-15 22:13:04,978 - /home/luo3300612/Workspace/PycharmWS/pytorch_playground/resnet/utils.py[line:18] - INFO: Iter: 10/64000	Loss:2.278517	LR: 0.01
