@@ -8,6 +8,7 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 import sys
 import torch.nn.functional as F
+from utils import OutPutUtil
 
 torchvision.models.resnet18()
 
@@ -273,8 +274,11 @@ if __name__ == '__main__':
                         help='input batch size for training and testing (default: 128)')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
-
+    parser.add_argument('--log-path', type=str, default='./train.log',
+                        help='path to save log file (default: ./train.log)')
     args = parser.parse_args()
+
+    monitor = OutPutUtil(True, True, args.log_path)
 
     batch_size = args.batch_size
 
@@ -333,7 +337,7 @@ if __name__ == '__main__':
             loss.backward()
             optimizer.step()
             if iter_idx % print_interval == 0:
-                print(f'Iter: {iter_idx}/{n_iter}\tLoss:{loss.item():.6f}\tLR: {lr}')
+                monitor.speak('Iter: {}/{}\tLoss:{:.6f}\tLR: {}'.format(iter_idx, n_iter, loss.item(), lr))
             writer.add_scalar("train/train_loss", loss.item(), iter_idx)
 
             if iter_idx % val_interval == 0:
@@ -350,14 +354,15 @@ if __name__ == '__main__':
                         test_loss += loss.item() * data.shape[0]
                     acc = acc / len(test_data)
                     test_loss = test_loss / len(test_data)
-                    print(f'Test Loss: {test_loss:.6f},acc:{acc:.4f}')
+
+                    monitor.speak('Test Loss: {:.6f},acc:{:.4f}'.format(test_loss, acc))
                     writer.add_scalar("train/test_loss", test_loss, iter_idx)
                     writer.add_scalar("train/acc", acc, iter_idx)
                 if test_loss < best_test_loss:
                     torch.save(net.state_dict(), r"./result/model{}".format(iter_idx))
-                    print(f"test loss: {test_loss:.6f} < best: {best_test_loss:.6f},save model")
+                    monitor.speak("test loss: {:.6f} < best: {:.6f},save model".format(test_loss, best_test_loss))
                     best_test_loss = test_loss
 
             if iter_idx == n_iter:
-                print("Done")
+                monitor.speak("Done")
                 break
