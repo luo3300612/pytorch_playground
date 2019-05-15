@@ -1,14 +1,14 @@
 from torchvision.models.resnet import resnet18
 import torch
-from main import ResNet18_new
+from main import ResNet20
 
 config = {"num_classes": 10}
 
 # net = resnet18(**config)
 
-net = ResNet18_new(3,10)
+net = ResNet20(3,10)
 
-x = torch.randn(size=[5, 3, 224, 64])
+x = torch.randn(size=[5, 3, 32, 32])
 
 output = net(x)
 
