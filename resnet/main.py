@@ -10,64 +10,59 @@ import sys
 import torch.nn.functional as F
 from utils import OutPutUtil
 
-torchvision.models.resnet18()
-
-device = torch.device("cpu")
-
-
-class ResNet18(nn.Module):
-    def __init__(self, H, W, in_channel=3, num_classes=10):
-        super(ResNet18, self).__init__()
-        self.conv1 = nn.Conv2d(in_channel, 64, kernel_size=7, stride=2, padding=3, bias=False)
-        self.bn1 = nn.BatchNorm2d(64)
-        self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(2, 2)
-        self.block1 = ResNetBlock(64, 64, 2, down_sample=False)
-        self.block2 = ResNetBlock(64, 128, 2)
-        self.block3 = ResNetBlock(128, 256, 2)
-        self.block4 = ResNetBlock(256, 512, 2)
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))  # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.flatten = Flatten()
-        self.fc = nn.Linear(512, num_classes)
-
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-        x = self.block1(x)
-        x = self.block2(x)
-        x = self.block3(x)
-        x = self.block4(x)
-        x = self.avgpool(x)
-        x = self.flatten(x)
-        x = self.fc(x)
-        return x
+# class ResNet18(nn.Module):
+#     def __init__(self, H, W, in_channel=3, num_classes=10):
+#         super(ResNet18, self).__init__()
+#         self.conv1 = nn.Conv2d(in_channel, 64, kernel_size=7, stride=2, padding=3, bias=False)
+#         self.bn1 = nn.BatchNorm2d(64)
+#         self.relu = nn.ReLU(inplace=True)
+#         self.maxpool = nn.MaxPool2d(2, 2)
+#         self.block1 = ResNetBlock(64, 64, 2, down_sample=False)
+#         self.block2 = ResNetBlock(64, 128, 2)
+#         self.block3 = ResNetBlock(128, 256, 2)
+#         self.block4 = ResNetBlock(256, 512, 2)
+#         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))  # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+#         self.flatten = Flatten()
+#         self.fc = nn.Linear(512, num_classes)
+#
+#     def forward(self, x):
+#         x = self.conv1(x)
+#         x = self.relu(x)
+#         x = self.maxpool(x)
+#         x = self.block1(x)
+#         x = self.block2(x)
+#         x = self.block3(x)
+#         x = self.block4(x)
+#         x = self.avgpool(x)
+#         x = self.flatten(x)
+#         x = self.fc(x)
+#         return x
 
 
-class ResNet34(nn.Module):
-    def __init__(self, H, W, in_channel=3, num_classes=10):
-        super(ResNet34, self).__init__()
-        self.conv1 = nn.Conv2d(in_channel, 64, kernel_size=7, stride=2, padding=3)
-        self.maxpool = nn.MaxPool2d(2, 2)
-        self.block1 = ResNetBlock(64, 64, 3, down_sample=False)
-        self.block2 = ResNetBlock(64, 128, 4)
-        self.block3 = ResNetBlock(128, 256, 6)
-        self.block4 = ResNetBlock(256, 512, 3)
-        self.avgpool = nn.AvgPool2d((H // (2 ** 5), W // (2 ** 5)))
-        self.flatten = Flatten()
-        self.fc = nn.Linear(512, num_classes)
-
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.maxpool(x)
-        x = self.block1(x)
-        x = self.block2(x)
-        x = self.block3(x)
-        x = self.block4(x)
-        x = self.avgpool(x)
-        x = self.flatten(x)
-        x = self.fc(x)
-        return x
+# class ResNet34(nn.Module):
+#     def __init__(self, H, W, in_channel=3, num_classes=10):
+#         super(ResNet34, self).__init__()
+#         self.conv1 = nn.Conv2d(in_channel, 64, kernel_size=7, stride=2, padding=3)
+#         self.maxpool = nn.MaxPool2d(2, 2)
+#         self.block1 = ResNetBlock(64, 64, 3, down_sample=False)
+#         self.block2 = ResNetBlock(64, 128, 4)
+#         self.block3 = ResNetBlock(128, 256, 6)
+#         self.block4 = ResNetBlock(256, 512, 3)
+#         self.avgpool = nn.AvgPool2d((H // (2 ** 5), W // (2 ** 5)))
+#         self.flatten = Flatten()
+#         self.fc = nn.Linear(512, num_classes)
+#
+#     def forward(self, x):
+#         x = self.conv1(x)
+#         x = self.maxpool(x)
+#         x = self.block1(x)
+#         x = self.block2(x)
+#         x = self.block3(x)
+#         x = self.block4(x)
+#         x = self.avgpool(x)
+#         x = self.flatten(x)
+#         x = self.fc(x)
+#         return x
 
 
 class ResNet20(nn.Module):
@@ -195,53 +190,53 @@ class ResNetBlock_new(nn.Module):
         return out
 
 
-class ResNetBlock(nn.Module):
-    def __init__(self, in_channel, out_channel, block_num, down_sample=True):
-        super(ResNetBlock, self).__init__()
-        self.in_channel = in_channel
-        self.out_channel = out_channel
-        self.block_num = block_num
-        self.down_sample = down_sample
-
-        self.convx = None
-        if down_sample:
-            self.convx = nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=2, bias=False)
-
-        self.relu = nn.ReLU()
-        self.maxpool = nn.MaxPool2d(2, 2)
-        self.layers = []
-        self.layers.append(nn.Conv2d(in_channel, out_channel, kernel_size=3, stride=1 + int(down_sample),
-                                     padding=1))
-        for i in range(1, self.block_num):
-            if i == 0:
-                self.__setattr__(f"conv{i + 1}_1",
-                                 nn.Conv2d(in_channel, out_channel, kernel_size=3, stride=1 + int(down_sample),
-                                           padding=1))
-            else:
-                self.__setattr__(f"conv{i + 1}_1",
-                                 nn.Conv2d(out_channel, out_channel, kernel_size=3, stride=1, padding=1))
-            if i != block_num - 1:
-                self.__setattr__(f"conv{i + 1}_2", nn.Conv2d(out_channel, out_channel, kernel_size=3, padding=1))
-            else:
-                self.__setattr__(f"conv{i + 1}_2", nn.Conv2d(out_channel, out_channel, kernel_size=3, padding=1))
-
-    def forward(self, x):
-
-        for i in range(self.block_num):
-            out = self.relu(self.__getattr__(f"conv{i + 1}_1")(x))
-            out = self.__getattr__(f"conv{i + 1}_2")(out)
-            if i is 0 and self.down_sample:
-                x = self.maxpool(x)
-                x = F.pad(x, (0, 0, 0, 0, 0, self.out_channel - self.in_channel))
-                out = out + x
-                # shape = x.shape[0], self.out_channel - self.in_channel, x.shape[2], x.shape[3]
-                # out = out + torch.cat((x, torch.zeros(shape).to(device)),
-                #                       dim=1)  # fixme: when load model in notebook, device is undefined
-            else:
-                out = out + x
-            out = self.relu(out)
-            x = out
-        return out
+# class ResNetBlock(nn.Module):
+#     def __init__(self, in_channel, out_channel, block_num, down_sample=True):
+#         super(ResNetBlock, self).__init__()
+#         self.in_channel = in_channel
+#         self.out_channel = out_channel
+#         self.block_num = block_num
+#         self.down_sample = down_sample
+#
+#         self.convx = None
+#         if down_sample:
+#             self.convx = nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=2, bias=False)
+#
+#         self.relu = nn.ReLU()
+#         self.maxpool = nn.MaxPool2d(2, 2)
+#         self.layers = []
+#         self.layers.append(nn.Conv2d(in_channel, out_channel, kernel_size=3, stride=1 + int(down_sample),
+#                                      padding=1))
+#         for i in range(1, self.block_num):
+#             if i == 0:
+#                 self.__setattr__(f"conv{i + 1}_1",
+#                                  nn.Conv2d(in_channel, out_channel, kernel_size=3, stride=1 + int(down_sample),
+#                                            padding=1))
+#             else:
+#                 self.__setattr__(f"conv{i + 1}_1",
+#                                  nn.Conv2d(out_channel, out_channel, kernel_size=3, stride=1, padding=1))
+#             if i != block_num - 1:
+#                 self.__setattr__(f"conv{i + 1}_2", nn.Conv2d(out_channel, out_channel, kernel_size=3, padding=1))
+#             else:
+#                 self.__setattr__(f"conv{i + 1}_2", nn.Conv2d(out_channel, out_channel, kernel_size=3, padding=1))
+#
+#     def forward(self, x):
+#
+#         for i in range(self.block_num):
+#             out = self.relu(self.__getattr__(f"conv{i + 1}_1")(x))
+#             out = self.__getattr__(f"conv{i + 1}_2")(out)
+#             if i is 0 and self.down_sample:
+#                 x = self.maxpool(x)
+#                 x = F.pad(x, (0, 0, 0, 0, 0, self.out_channel - self.in_channel))
+#                 out = out + x
+#                 # shape = x.shape[0], self.out_channel - self.in_channel, x.shape[2], x.shape[3]
+#                 # out = out + torch.cat((x, torch.zeros(shape).to(device)),
+#                 #                       dim=1)  # fixme: when load model in notebook, device is undefined
+#             else:
+#                 out = out + x
+#             out = self.relu(out)
+#             x = out
+#         return out
 
 
 class Flatten(nn.Module):
