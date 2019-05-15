@@ -84,5 +84,20 @@ resnet在进行skip connection的时候会出现不仅仅是channel增加（用0
 short cuts go across feature maps of two sizes, they are performed with 
 a stride of 2，即便使用了stride of 2，那是要用maxpool吗？还是要随机选一个元素
 呢？
-
 先用maxpool试试
+### 源码对比结果
+* 源码中在relu前使用了batch normalization层
+* 源码中第一个下采样的maxpool是3*3 padding=1 stride=2的，而我的是2*2 padding=0 stride=2的，这有啥影响
+* 源码中的relu使用的是就地操作nn.ReLU(inplace=True)，这样可以节省一点内存
+* 源码中卷积使用了bias=False参数
+* 源码中的avgpool使用的是Adaptiveavgpool，只要给输出的size就可以
+* 源码中奇怪的初始化方法
+* 我conv1后面竟然没有做relu
+* 源码中为了让x通过skip connection，通过1*1的卷积使得x的channel对应，并通过设置stride=2使得空间维度对应，这实际上是论文中对应的b类方案
+* 源码中使用列表，然后用nn.Sequential(*layers)来动态加入层
+
+
+### 经验
+后面有bn bias可以是Fasle
+nn.AdaptiveAvgPool2d好用
+nn.Sequential好用
