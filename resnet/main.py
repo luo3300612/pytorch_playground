@@ -317,7 +317,10 @@ if __name__ == '__main__':
     # net = torchvision.models.resnet18(False, **{"num_classes": 10}).to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9,weight_decay=0.0001)
+
+    lr = 0.1
+
+    optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.9,weight_decay=0.0001)
 
     writer = SummaryWriter()
 
@@ -332,7 +335,7 @@ if __name__ == '__main__':
             data = data.to(device)
             target = target.to(device)
             iter_idx += 1
-            lr = adjust_learning_rate(optimizer, iter_idx, init_lr=0.01)
+            lr = adjust_learning_rate(optimizer, iter_idx, init_lr=lr)
             output = net(data)
             loss = criterion(output, target)
             optimizer.zero_grad()
