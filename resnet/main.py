@@ -365,6 +365,6 @@ if __name__ == '__main__':
                     monitor.speak("test loss: {:.6f} < best: {:.6f},save model".format(test_loss, best_test_loss))
                     best_test_loss = test_loss
 
-            if iter_idx > n_iter:
-                monitor.speak("Done")
-                break
+        if iter_idx > n_iter:
+            monitor.speak("Done")
+            break
