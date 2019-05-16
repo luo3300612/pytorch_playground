@@ -10,6 +10,7 @@ import sys
 import torch.nn.functional as F
 from utils import OutPutUtil
 import numpy as np
+from torch.nn import DataParallel
 
 
 # class ResNet18(nn.Module):
@@ -322,7 +323,7 @@ if __name__ == '__main__':
                              num_workers=1)
 
     # net = ResNet18(32, 32, 3, 10).to(device)
-    net = ResNet20(3, 10).to(device)
+    net = DataParallel(ResNet20(3, 10)).to(device)
     # net = torchvision.models.resnet18(False, **{"num_classes": 10}).to(device)
 
     criterion = nn.CrossEntropyLoss()
