@@ -97,7 +97,8 @@ class ResNet20(nn.Module):
     def _make_layer(self, in_channel, out_channel, num_block, downsample=False):
         layers = []
         if downsample:
-            downsample = nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=2)
+            downsample = nn.Sequential(nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=2, bias=False),
+                                       nn.BatchNorm2d(out_channel))
         else:
             downsample = None
 
@@ -323,7 +324,7 @@ if __name__ == '__main__':
                              num_workers=1)
 
     # net = ResNet18(32, 32, 3, 10).to(device)
-    net = DataParallel(ResNet20(3, 10)).to(device)
+    net = DataParallel(ResNet20(3, 10), device_ids=[0, 1]).to(device)
     # net = torchvision.models.resnet18(False, **{"num_classes": 10}).to(device)
 
     criterion = nn.CrossEntropyLoss()
