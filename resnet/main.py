@@ -86,6 +86,13 @@ class ResNet20(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(64, num_classes)
 
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
     def _make_layer(self, in_channel, out_channel, num_block, downsample=False):
         layers = []
         if downsample:
@@ -292,14 +299,16 @@ if __name__ == '__main__':
                                                   transforms.RandomCrop(32, 4),
                                                   transforms.RandomHorizontalFlip(),
                                                   transforms.ToTensor(),
-                                                  transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                                                  transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                                                       (0.2023, 0.1994, 0.2010)),
                                               ]),
                                               download=True)
     test_data = torchvision.datasets.CIFAR10(root='./data/',
                                              train=False,
                                              transform=transforms.Compose([
                                                  transforms.ToTensor(),
-                                                 transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+                                                 transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                                                      (0.2023, 0.1994, 0.2010))
                                              ]),
                                              download=True)
 
