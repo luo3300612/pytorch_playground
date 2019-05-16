@@ -9,6 +9,8 @@ from tensorboardX import SummaryWriter
 import sys
 import torch.nn.functional as F
 from utils import OutPutUtil
+import numpy as np
+
 
 # class ResNet18(nn.Module):
 #     def __init__(self, H, W, in_channel=3, num_classes=10):
@@ -134,7 +136,8 @@ class ResNet18_new(nn.Module):
     def _make_layer(self, in_channel, out_channel, num_block, downsample=False):
         layers = []
         if downsample:
-            downsample = nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=2)
+            downsample = nn.Sequential(nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=2, bias=False),
+                                       nn.BatchNorm2d(out_channel))
         else:
             downsample = None
 
@@ -182,10 +185,12 @@ class ResNetBlock_new(nn.Module):
         out = self.bn1(out)
         out = self.relu(out)
         out = self.conv2(out)
+        out = self.bn2(out)
+
         if self.downsample is not None:
             x = self.downsample(x)
+
         out = out + x  # TODO together batch normalization??
-        out = self.bn2(out)
         out = self.relu(out)
         return out
 
@@ -284,8 +289,10 @@ if __name__ == '__main__':
     train_data = torchvision.datasets.CIFAR10(root='./data/',
                                               train=True,
                                               transform=transforms.Compose([
+                                                  transforms.RandomCrop(32, 4),
+                                                  transforms.RandomHorizontalFlip(),
                                                   transforms.ToTensor(),
-                                                  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                                                  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                               ]),
                                               download=True)
     test_data = torchvision.datasets.CIFAR10(root='./data/',
@@ -358,6 +365,6 @@ if __name__ == '__main__':
                     monitor.speak("test loss: {:.6f} < best: {:.6f},save model".format(test_loss, best_test_loss))
                     best_test_loss = test_loss
 
-            if iter_idx == n_iter:
+            if iter_idx > n_iter:
                 monitor.speak("Done")
                 break
