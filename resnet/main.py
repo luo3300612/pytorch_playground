@@ -184,7 +184,7 @@ class ResNetBlock_new(nn.Module):
             self.conv1 = nn.Conv2d(in_channel, out_channel, kernel_size=3,
                                    stride=2, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(out_channel)
-        self.relu = nn.ReLU(inplace=False)
+        self.relu = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(out_channel, out_channel, kernel_size=3,
                                stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(out_channel)
@@ -337,10 +337,11 @@ if __name__ == '__main__':
 
     iter_idx = 0
     n_iter = 64000
-    val_interval = 100
+    val_interval = 1000
     print_interval = 10
 
     best_test_loss = 3
+    net.train()
     while True:
         for batch_idx, (data, target) in enumerate(train_loader):
             data = data.to(device)
@@ -357,6 +358,7 @@ if __name__ == '__main__':
             writer.add_scalar("train/train_loss", loss.item(), iter_idx)
 
             if iter_idx % val_interval == 0:
+                net.eval()
                 test_loss = 0.0
                 with torch.no_grad():
                     acc = 0.0
@@ -378,6 +380,7 @@ if __name__ == '__main__':
                     torch.save(net.state_dict(), r"./result/model{}".format(iter_idx))
                     monitor.speak("test loss: {:.6f} < best: {:.6f},save model".format(test_loss, best_test_loss))
                     best_test_loss = test_loss
+                net.train()
 
         if iter_idx > n_iter:
             monitor.speak("Done")
