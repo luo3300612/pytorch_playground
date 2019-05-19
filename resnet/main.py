@@ -317,14 +317,15 @@ if __name__ == '__main__':
     train_loader = DataLoader(train_data,
                               batch_size=batch_size,
                               shuffle=True,
-                              num_workers=1)
+                              num_workers=4)
     test_loader = DataLoader(test_data,
                              batch_size=batch_size,
                              shuffle=True,
-                             num_workers=1)
+                             num_workers=4)
 
     # net = ResNet18(32, 32, 3, 10).to(device)
     net = DataParallel(ResNet20(3, 10), device_ids=[0, 1]).to(device)
+    net.fc = nn.Linear(512,512)
     # net = torchvision.models.resnet18(False, **{"num_classes": 10}).to(device)
 
     criterion = nn.CrossEntropyLoss()
