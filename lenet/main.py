@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append('../')
+
 from utils.utils import OutPutUtil
 import torch
 import torchvision.datasets.cifar
