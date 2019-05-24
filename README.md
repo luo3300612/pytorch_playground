@@ -79,12 +79,23 @@ CONV-relu-pool
 * 初始学习率0.1，在32k和48k次迭代时除以10
 * 在64k次迭代时终止
 ### 问题
-resnet在进行skip connection的时候会出现不仅仅是channel增加（用0padding或投影
+* resnet在进行skip connection的时候会出现不仅仅是channel增加（用0padding或投影
 解决），而且会出现feature map size减小的情况，对此，论文上给出的是when the 
 short cuts go across feature maps of two sizes, they are performed with 
 a stride of 2，即便使用了stride of 2，那是要用maxpool吗？还是要随机选一个元素
 呢？
 先用maxpool试试
+
+正确做法是使用1\*1的卷积同时进行channel和feature map的变换
+* skip connection的时候，x是和out一起做bn还是？
+x和bn分别做bn然后加到一起做relu，一开始我用一起做结果训练的acc只有81%
+* cifar10 的augmentation:4padding + random crop((32,32)) + random horizontal flip
+* lr用错了，weight decay没加、初始化方法没用、normalize不对，acc约0.85左右
+* 加上了weight decay和正确的lr，acc能到0.89
+* 加上推荐的norm之后竟然只有0.87？？？
+* 加上推荐的norm和init方法后大概是0.88左右
+* net.train()，0.9199，解决问题
+
 ### 源码对比结果
 * 源码中在relu前使用了batch normalization层
 * 源码中第一个下采样的maxpool是3*3 padding=1 stride=2的，而我的是2*2 padding=0 stride=2的，这有啥影响
@@ -98,6 +109,25 @@ a stride of 2，即便使用了stride of 2，那是要用maxpool吗？还是要�
 
 
 ### 经验
-后面有bn bias可以是Fasle
-nn.AdaptiveAvgPool2d好用
-nn.Sequential好用
+* 后面有bn bias可以是Fasle
+* nn.AdaptiveAvgPool2d好用
+* nn.Sequential好用
+
+
+## LeNet
+### 结构
+* 输入：32×32×3
+* 卷积：5×5 -> 28×28×6
+* 下采样：2×2 每个区域中加起来，然后线性变换一下 -> 14×14×6
+* sigmoid -> 14×14×6
+* 卷积： 5×5 -> 10×10×16 ,  very starnge，原因，1：减少连接数，2：打破对称性3
+* 下采样：与前一个一样 -> 5×5×16
+* sigmoid(?) -> 5×5×16
+* 卷积：5×5 ->1×1×120
+* 全连接： -> 1×84
+* 非线性:  Atanh(Sx) -> 1×84
+* 径向基：
+## Pytorch Tutorials
+* pytorch是动态图，tensorflow是静态图，静态图一次生成多次使用，动态图在使用过程中动态生成，静态图利于优化，动态图利于灵活的流程控制
+* tf中kears,TensorFlow-Flim和TFLearn提供了高层抽象，pytorch中，这些高层抽象在torch.nn中
+

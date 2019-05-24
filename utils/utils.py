@@ -2,7 +2,7 @@ import logging
 
 
 class OutPutUtil:
-    def __init__(self, terminal, log, log_file):
+    def __init__(self, terminal=True, log=True, log_file='./train.log'):
         self.log = log
         self.terminal = terminal
         if log:
