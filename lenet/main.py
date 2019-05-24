@@ -209,6 +209,7 @@ if __name__ == '__main__':
         for batch_idx, (data, target) in enumerate(train_loader):
             lr = adjust_learning_rate(optimizer, iter_idx, n_iter, init_lr=init_lr)
             iter_idx += 1
+
             data = data.to(device)
             target = target.to(device)
             output = net(data)
@@ -245,3 +246,6 @@ if __name__ == '__main__':
                     monitor.speak("test loss: {:.6f} < best: {:.6f},save if asked".format(test_loss, best_test_loss))
                     best_test_loss = test_loss
                 net.train()
+        if iter_idx > n_iter:
+            monitor.speak("Done")
+            break
