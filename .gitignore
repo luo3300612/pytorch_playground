@@ -11,3 +11,5 @@ resnet/.ipynb_checkpoints
 resnet/result/*
 resnet/runs/*
 resnet/train.log
+lenet/runs/*
+lenet/train.log

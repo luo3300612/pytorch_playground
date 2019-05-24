@@ -225,7 +225,7 @@ if __name__ == '__main__':
                 test_loss = 0.0
                 acc = 0.0
                 with torch.no_grad():
-                    for data, target in enumerate(test_loader):
+                    for data, target in test_loader:
                         data = data.to(device)
                         target = target.to(device)
                         output = net(data)
