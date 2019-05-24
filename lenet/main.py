@@ -99,7 +99,7 @@ class NewLeNet(nn.Module):
 
     def forward(self, x):
         x = F.max_pool2d(F.relu(self.conv1(x)), 2)
-        x = F.maxpool(F.relu(self.conv2(x)), 2)
+        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
         x = F.relu(self.conv3(x))
         x = x.view((x.size(0), -1))
         x = F.relu(self.fc1(x))
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     monitor.speak(args)
     writer = SummaryWriter()
 
-    use_cuda = not args.no_cude and torch.cuda.is_avaliable()
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
 
     train_data = torchvision.datasets.CIFAR10(root='../resnet/data/',
@@ -239,9 +239,9 @@ if __name__ == '__main__':
                 monitor.speak('Test Loss: {:.6f},acc:{:.4f}'.format(test_loss, acc))
                 writer.add_scalar("train/test_loss", test_loss, iter_idx)
                 writer.add_scalar("train/acc", acc, iter_idx)
-            if test_loss < best_test_loss:
-                if args.save:
-                    save_checkpoint(iter_idx, net, optimizer, loss.item(), args.save_path)
-                monitor.speak("test loss: {:.6f} < best: {:.6f},save if asked".format(test_loss, best_test_loss))
-                best_test_loss = test_loss
-            net.train()
+                if test_loss < best_test_loss:
+                    if args.save:
+                        save_checkpoint(iter_idx, net, optimizer, loss.item(), args.save_path)
+                    monitor.speak("test loss: {:.6f} < best: {:.6f},save if asked".format(test_loss, best_test_loss))
+                    best_test_loss = test_loss
+                net.train()
