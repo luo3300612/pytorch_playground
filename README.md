@@ -131,3 +131,9 @@ x和bn分别做bn然后加到一起做relu，一开始我用一起做结果训�
 * pytorch是动态图，tensorflow是静态图，静态图一次生成多次使用，动态图在使用过程中动态生成，静态图利于优化，动态图利于灵活的流程控制
 * tf中kears,TensorFlow-Flim和TFLearn提供了高层抽象，pytorch中，这些高层抽象在torch.nn中
 
+## AlexNet
+### difference
+具体实现采用了现代网络设方法，与原版不同之处有：
+* 原版在两个GPU上训练两个网络，并在中间某些层设置了两个网络的连接，这里只用一个网络
+* 原版有response local normalization，这里没有使用
+* 原版的最大池化是overlapping的kernel=3,stide=2的池化，这里直接22
