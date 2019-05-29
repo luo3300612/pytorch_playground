@@ -62,21 +62,34 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Pytorch AlexNet CIFAR10 Example')
     parser.add_argument('--batch-size', type=int, default=128, metavar='N',
                         help='input batch size for training and testing (default: 128)')
+    parser.add_argument('--val-interval', type=int, default=1000,
+                        help='val interval (default: 1000)')
+    parser.add_argument('--n-iter', type=int, default=64000,
+                        help='total iteration (default: 64000)')
+    parser.add_argument('--lr', type=float, default=0.01,
+                        help='learning rate (default: 0.01)')
+    parser.add_argument('--m', type=float, default=0.9,
+                        help='momentum (default: 0.9)')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
+    parser.add_argument('--adam', action='store_true', default=False,
+                        help='use adam')
     parser.add_argument('--log-path', type=str, default='./train.log',
                         help='path to save log file (default: ./train.log)')
+    parser.add_argument('--save', action='store_true', default=False,
+                        help='save checkpoint (default:False)')
+    parser.add_argument('--save_path', type=str, default='./result',
+                        help='model save path (default: ./result')
     args = parser.parse_args()
 
     monitor = OutPutUtil(True, True, args.log_path)
-
-    batch_size = args.batch_size
+    monitor.speak(args)
+    writer = SummaryWriter()
 
     use_cuda = not args.no_cuda and torch.cuda.is_available()
-
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    train_data = torchvision.datasets.CIFAR10(root='./data/',
+    train_data = torchvision.datasets.CIFAR10(root='../resnet/data/',
                                               train=True,
                                               transform=transforms.Compose([
                                                   transforms.RandomCrop(32, 4),
@@ -86,7 +99,7 @@ if __name__ == '__main__':
                                                                        (0.2023, 0.1994, 0.2010)),
                                               ]),
                                               download=True)
-    test_data = torchvision.datasets.CIFAR10(root='./data/',
+    test_data = torchvision.datasets.CIFAR10(root='../resnet/data/',
                                              train=False,
                                              transform=transforms.Compose([
                                                  transforms.ToTensor(),
@@ -95,6 +108,7 @@ if __name__ == '__main__':
                                              ]),
                                              download=True)
 
+    batch_size = args.batch_size
     train_loader = DataLoader(train_data,
                               batch_size=batch_size,
                               shuffle=True,
@@ -105,28 +119,28 @@ if __name__ == '__main__':
                              num_workers=4)
 
     net = AlexNet().to(device)
-
     criterion = nn.CrossEntropyLoss()
+    init_lr = args.lr
+    lr = args.lr
+    if args.adam:
+        optimizer = optim.Adam(net.parameters(), lr=lr)
+    else:
+        optimizer = optim.SGD(net.parameters(), lr=lr, momentum=args.m)
 
-    learning_rate = 0.1
-
-    optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9, weight_decay=0.0001)
-
-    writer = SummaryWriter()
-
-    iter_idx = 0
-    n_iter = 64000
-    val_interval = 1000
+    n_iter = args.n_iter
+    val_interval = args.val_interval
     print_interval = 10
 
-    best_test_loss = 3
+    best_test_loss = 4
+    iter_idx = 0
     net.train()
     while True:
         for batch_idx, (data, target) in enumerate(train_loader):
+            lr = adjust_learning_rate(optimizer, iter_idx, n_iter, init_lr=init_lr)
+            iter_idx += 1
+
             data = data.to(device)
             target = target.to(device)
-            iter_idx += 1
-            lr = adjust_learning_rate(optimizer, iter_idx, init_lr=learning_rate)
             output = net(data)
             loss = criterion(output, target)
             optimizer.zero_grad()
@@ -139,28 +153,28 @@ if __name__ == '__main__':
             if iter_idx % val_interval == 0:
                 net.eval()
                 test_loss = 0.0
+                acc = 0.0
                 with torch.no_grad():
-                    acc = 0.0
                     for data, target in test_loader:
                         data = data.to(device)
                         target = target.to(device)
                         output = net(data)
-                        pred_label = torch.argmax(output, dim=1)
+                        pred_label = torch.argmax(output, 1)
                         acc += torch.sum(pred_label == target).item()
                         loss = criterion(output, target)
                         test_loss += loss.item() * data.shape[0]
                     acc = acc / len(test_data)
                     test_loss = test_loss / len(test_data)
-
-                    monitor.speak('Test Loss: {:.6f},acc:{:.4f}'.format(test_loss, acc))
-                    writer.add_scalar("train/test_loss", test_loss, iter_idx)
-                    writer.add_scalar("train/acc", acc, iter_idx)
+                monitor.speak(())
+                monitor.speak('Test Loss: {:.6f},acc:{:.4f}'.format(test_loss, acc))
+                writer.add_scalar("train/test_loss", test_loss, iter_idx)
+                writer.add_scalar("train/acc", acc, iter_idx)
                 if test_loss < best_test_loss:
-                    torch.save(net.state_dict(), r"./result/model{}".format(iter_idx))
-                    monitor.speak("test loss: {:.6f} < best: {:.6f},save model".format(test_loss, best_test_loss))
+                    if args.save:
+                        save_checkpoint(iter_idx, net, optimizer, loss.item(), args.save_path)
+                    monitor.speak("test loss: {:.6f} < best: {:.6f},save if asked".format(test_loss, best_test_loss))
                     best_test_loss = test_loss
                 net.train()
-
         if iter_idx > n_iter:
             monitor.speak("Done")
             break
