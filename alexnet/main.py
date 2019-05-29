@@ -103,7 +103,7 @@ if __name__ == '__main__':
                                               ]),
                                               download=True)
     if args.val:
-        train_data = train_data[:1000]
+        train_data = train_data[0:1000]
     test_data = torchvision.datasets.CIFAR10(root='../resnet/data/',
                                              train=False,
                                              transform=transforms.Compose([
