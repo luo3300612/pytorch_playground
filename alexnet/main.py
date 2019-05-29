@@ -79,7 +79,9 @@ if __name__ == '__main__':
     parser.add_argument('--save', action='store_true', default=False,
                         help='save checkpoint (default:False)')
     parser.add_argument('--save_path', type=str, default='./result',
-                        help='model save path (default: ./result')
+                        help='model save path (default: ./result)')
+    parser.add_argument('--val', action='store_true', default=False,
+                        help='val mode (default: False)')
     args = parser.parse_args()
 
     monitor = OutPutUtil(True, True, args.log_path)
@@ -99,6 +101,8 @@ if __name__ == '__main__':
                                                                        (0.2023, 0.1994, 0.2010)),
                                               ]),
                                               download=True)
+    if args.val:
+        train_data = train_data[:1000]
     test_data = torchvision.datasets.CIFAR10(root='../resnet/data/',
                                              train=False,
                                              transform=transforms.Compose([
