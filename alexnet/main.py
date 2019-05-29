@@ -7,12 +7,12 @@ import argparse
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 import sys
+sys.path.append('../')
 import torch.nn.functional as F
 from utils.utils import OutPutUtil
 import numpy as np
 from torch.nn import DataParallel
 
-sys.path.append('../')
 
 class AlexNet(nn.Module):
     def __init__(self):
