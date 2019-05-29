@@ -46,11 +46,11 @@ class AlexNet(nn.Module):
         return x
 
 
-def adjust_learning_rate(optimizer, iteration, init_lr=0.1):
+def adjust_learning_rate(optimizer, iteration, n_iter, init_lr=0.1):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    if iteration <= 32000:
+    if iteration / n_iter <= 0.5:
         lr = init_lr
-    elif 32000 < iteration <= 48000:
+    elif 0.5 < iteration / n_iter <= 0.75:
         lr = init_lr / 10
     else:
         lr = init_lr / 100
