@@ -12,6 +12,7 @@ from utils.utils import OutPutUtil
 import numpy as np
 from torch.nn import DataParallel
 
+sys.path.append('../')
 
 class AlexNet(nn.Module):
     def __init__(self):
