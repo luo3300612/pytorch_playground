@@ -10,9 +10,9 @@ class VGG(nn.Module):
         self.block3 = self._make_layer(128, 256, 3)
         self.block4 = self._make_layer(256, 512, 3)
         self.block5 = self._make_layer(512, 512, 3)
-        self.fc1 = nn.Linear(512, 4096)
-        self.fc2 = nn.Linear(4096, 4096)
-        self.fc3 = nn.Linear(4096, num_classes)
+        self.fc1 = nn.Linear(512, 512)
+        self.fc2 = nn.Linear(512, 512)
+        self.fc3 = nn.Linear(512, num_classes)
 
     def forward(self, x):
         x = F.max_pool2d(self.block1(x), 2, 2)
