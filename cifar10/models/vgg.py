@@ -17,9 +17,9 @@ class VGG(nn.Module):
 
         # self.conv8 = nn.Conv2d(32, 32, 1, 1)
         # self.conv9 = nn.Conv2d(32, 32, 1, 1)
-        self.conv10 = nn.Conv2d(32, 32, 1, 1)
+        # self.conv10 = nn.Conv2d(32, 32, 1, 1)
 
-        # self.conv11 = nn.Conv2d(32, 64, 1, 1)
+        self.conv11 = nn.Conv2d(32, 64, 1, 1)
         # self.conv12 = nn.Conv2d(64, 64, 1, 1)
         self.conv13 = nn.Conv2d(64, 64, 1, 1)
         # self.fc1 = nn.Linear(64, 64)
@@ -33,7 +33,7 @@ class VGG(nn.Module):
         x = F.max_pool2d(x, 2, 2)
         x = F.relu(self.conv5(x))
         x = F.max_pool2d(x, 2, 2)
-        x = F.relu(self.conv10(x))
+        x = F.relu(self.conv11(x))
         x = F.max_pool2d(x, 2, 2)
         x = F.relu(self.conv13(x))
         x = F.max_pool2d(x, 2, 2)
