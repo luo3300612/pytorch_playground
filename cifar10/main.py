@@ -12,6 +12,7 @@ from utils.utils import OutPutUtil
 import numpy as np
 from torch.nn import DataParallel
 from models.vgg import VGG
+from models.lenet import NewLeNet
 
 def adjust_learning_rate(optimizer, iteration, n_iter, init_lr=0.1):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
@@ -37,8 +38,8 @@ def save_checkpoint(epoch, model, optimizer, loss, save_path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Pytorch AlexNet CIFAR10 Example')
-    parser.add_argument('model', type=str,
-                        help='classifier')
+    # parser.add_argument('model', type=str,
+    #                     help='classifier')
     parser.add_argument('--batch-size', type=int, default=128, metavar='N',
                         help='input batch size for training and testing (default: 128)')
     parser.add_argument('--val-interval', type=int, default=1000,
@@ -101,6 +102,7 @@ if __name__ == '__main__':
                              num_workers=4)
 
     net = VGG().to(device)
+    print(net)
     criterion = nn.CrossEntropyLoss()
     init_lr = args.lr
     lr = args.lr
