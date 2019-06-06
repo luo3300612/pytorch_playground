@@ -137,3 +137,6 @@ x和bn分别做bn然后加到一起做relu，一开始我用一起做结果训�
 * 原版在两个GPU上训练两个网络，并在中间某些层设置了两个网络的连接，这里只用一个网络
 * 原版有response local normalization，这里没有使用
 * 原版的最大池化是overlapping的kernel=3,stide=2的池化，这里直接22
+
+## VGG
+不加BN的时候loss根本无法下降

@@ -58,6 +58,13 @@ def adjust_learning_rate(optimizer, iteration, n_iter, init_lr=0.1):
         param_group['lr'] = lr
     return lr
 
+def save_checkpoint(epoch, model, optimizer, loss, save_path):
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict,
+        'loss': loss
+    }, save_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Pytorch AlexNet CIFAR10 Example')
@@ -102,8 +109,6 @@ if __name__ == '__main__':
                                                                        (0.2023, 0.1994, 0.2010)),
                                               ]),
                                               download=True)
-    if args.val:
-        train_data = train_data[0:1000]
     test_data = torchvision.datasets.CIFAR10(root='../resnet/data/',
                                              train=False,
                                              transform=transforms.Compose([
