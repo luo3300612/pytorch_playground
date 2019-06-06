@@ -41,14 +41,14 @@ import torch.nn.functional as F
 class VGG(nn.Module):
     def __init__(self, input_channels=3, num_classes=10):
         super(VGG, self).__init__()
-        self.block1 = self._make_layer(input_channels, 16, 2)
-        self.block2 = self._make_layer(16, 16, 2)
-        self.block3 = self._make_layer(16, 32, 3)
-        self.block4 = self._make_layer(32, 32, 3)
-        self.block5 = self._make_layer(32, 64, 3)
-        self.fc1 = nn.Linear(64, 64)
-        self.fc2 = nn.Linear(64, 64)
-        self.fc3 = nn.Linear(64, num_classes)
+        self.block1 = self._make_layer(input_channels, 64, 2)
+        self.block2 = self._make_layer(64, 128, 2)
+        self.block3 = self._make_layer(128, 256, 3)
+        self.block4 = self._make_layer(256, 512, 3)
+        self.block5 = self._make_layer(512, 512, 3)
+        self.fc1 = nn.Linear(512, 4096)
+        self.fc2 = nn.Linear(4096, 4096)
+        self.fc3 = nn.Linear(4096, num_classes)
 
     def forward(self, x):
         x = F.max_pool2d(self.block1(x), 2, 2)
@@ -73,7 +73,7 @@ class VGG(nn.Module):
 class ConvReLU(nn.Module):
     def __init__(self, input_channels, output_channels):
         super(ConvReLU, self).__init__()
-        self.conv = nn.Conv2d(input_channels, output_channels, kernel_size=3, stride=1, padding=1,bias=False)
+        self.conv = nn.Conv2d(input_channels, output_channels, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn = nn.BatchNorm2d(output_channels)
 
     def forward(self, x):
