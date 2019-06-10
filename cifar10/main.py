@@ -13,6 +13,8 @@ import numpy as np
 from torch.nn import DataParallel
 from models.vgg import VGG
 from models.lenet import NewLeNet
+import time
+
 
 def adjust_learning_rate(optimizer, iteration, n_iter, init_lr=0.1):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
@@ -62,9 +64,14 @@ if __name__ == '__main__':
                         help='model save path (default: ./result)')
     parser.add_argument('--val', action='store_true', default=False,
                         help='val mode (default: False)')
+    parser.add_argument('--q', action='store_true', default=False,
+                        help='no output file (default: False)')
     args = parser.parse_args()
 
-    monitor = OutPutUtil(True, True, args.log_path)
+    if not args.q:
+        monitor = OutPutUtil(True, True, args.log_path)
+    else:
+        monitor = OutPutUtil(True, log=False, log_file=args.log_path)
     monitor.speak(args)
     writer = SummaryWriter()
 
@@ -119,7 +126,10 @@ if __name__ == '__main__':
     iter_idx = 0
     net.train()
     while True:
+        torch.cuda.synchronize()
+        start = time.time()
         for batch_idx, (data, target) in enumerate(train_loader):
+
             lr = adjust_learning_rate(optimizer, iter_idx, n_iter, init_lr=init_lr)
             iter_idx += 1
 
@@ -131,7 +141,10 @@ if __name__ == '__main__':
             loss.backward()
             optimizer.step()
             if iter_idx % print_interval == 0:
-                monitor.speak('Iter: {}/{}\tLoss:{:.6f}\tLR: {}'.format(iter_idx, n_iter, loss.item(), lr))
+                torch.cuda.synchronize()
+                end = time.time()
+                monitor.speak('Iter: {}/{}\tLoss:{:.6f}\tLR: {}\ttime/batch'.format(iter_idx, n_iter, loss.item(), lr,
+                                                                                    (end - start) / batch_size))
             writer.add_scalar("train/train_loss", loss.item(), iter_idx)
 
             if iter_idx % val_interval == 0:
