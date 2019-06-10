@@ -14,7 +14,9 @@ from torch.nn import DataParallel
 from models.vgg import VGG
 from models.lenet import NewLeNet
 import time
+from torchvision.models import vgg19_bn
 
+# 为了根据iteration的次数进行输出和test，就不用函数的形式包裹train和test了
 
 def adjust_learning_rate(optimizer, iteration, n_iter, init_lr=0.1):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""

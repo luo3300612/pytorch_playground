@@ -132,19 +132,52 @@ x和bn分别做bn然后加到一起做relu，一开始我用一起做结果训�
 * tf中kears,TensorFlow-Flim和TFLearn提供了高层抽象，pytorch中，这些高层抽象在torch.nn中
 
 ## AlexNet
+### 特点
+5CONV+3FC，其中前两个FC有dropout
 ### difference
 具体实现采用了现代网络设方法，与原版不同之处有：
 * 原版在两个GPU上训练两个网络，并在中间某些层设置了两个网络的连接，这里只用一个网络
 * 原版有response local normalization，这里没有使用
 * 原版的最大池化是overlapping的kernel=3,stide=2的池化，这里直接22
+### Idea
+可以采用Sequential的写法，这样写forward的时候比较简介，参考自[这里](https://github.com/BIGBALLON/CIFAR-ZOO/blob/master/models/alexnet.py)
+```python
+class AlexNet(nn.Module):
+
+    def __init__(self, num_classes):
+        super(AlexNet, self).__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=5),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(64, 192, kernel_size=5, padding=2),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(192, 384, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(384, 256, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+        )
+        self.fc = nn.Linear(256, num_classes)
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+        return x
+```
 
 ## VGG
 不加BN的时候loss根本无法下降
+有趣的现象是训练到后面acc变高但loss也变高
 
 ## CIFAR10
-|Model|Acc|
-|---|---|
-|LeNet|75.06%|
-|AlexNet|78.06%|
-|VGG16|84.71%(暂时)|
+|Model|Acc||
+|---|---|---|
+|LeNet|75.06%||
+|AlexNet|78.06%||
+|VGG16|92.64%(暂时)|可能这就是现在人们浅层网络选择VGG而不选resnet20的原因|
 |ResNet20|91.99%|
