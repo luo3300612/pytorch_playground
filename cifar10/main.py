@@ -113,7 +113,7 @@ if __name__ == '__main__':
                              shuffle=True,
                              num_workers=4)
 
-    net = models.setup(args)
+    net = models.setup(args).to(device)
     print(net)
     criterion = nn.CrossEntropyLoss()
     init_lr = args.lr
