@@ -18,6 +18,7 @@ import models
 from torchvision.models import vgg19_bn
 from pathlib import Path
 import os
+import multiprocessing
 
 
 # 为了根据iteration的次数进行输出和test，就不用函数的形式包裹train和test了
@@ -109,11 +110,13 @@ if __name__ == '__main__':
     train_loader = DataLoader(train_data,
                               batch_size=batch_size,
                               shuffle=True,
-                              num_workers=4)
+                              num_workers=multiprocessing.cpu_count(),
+                              pin_memory=True)
     test_loader = DataLoader(test_data,
                              batch_size=batch_size,
                              shuffle=True,
-                             num_workers=4)
+                             num_workers=multiprocessing.cpu_count(),
+                             pin_memory=True)
 
     net = models.setup(args).to(device)
     print(net)
@@ -151,8 +154,8 @@ if __name__ == '__main__':
                 torch.cuda.synchronize()
                 end = time.time()
                 monitor.speak(
-                    'Iter: {}/{}\tLoss:{:.6f}\tLR: {}\ttime/batch:{}'.format(iter_idx, n_iter, loss.item(), lr,
-                                                                             (end - start) / batch_size))
+                    'Iter: {}/{}\tLoss:{:.6f}\tLR: {}\ttime/batch:{:.4f}'.format(iter_idx, n_iter, loss.item(), lr,
+                                                                                 (end - start) / batch_size))
                 start = time.time()
             writer.add_scalar("train/train_loss", loss.item(), iter_idx)
 
