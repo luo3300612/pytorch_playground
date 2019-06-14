@@ -70,7 +70,7 @@ if __name__ == '__main__':
                         help='no output log file (default: False)')
     args = parser.parse_args()
 
-    if not args.q:
+    if not args.no_log:
         monitor = OutPutUtil(True, True, log_file=str(Path(args.checkpoint_path, './train.log')))
     else:
         monitor = OutPutUtil(True, log=False, log_file=str(Path(args.checkpoint_path, './train.log')))
