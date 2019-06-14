@@ -42,7 +42,7 @@ def save_checkpoint(epoch, model, optimizer, loss, save_path):
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict,
         'loss': loss
-    }, save_path)
+    }, str(Path(save_path, 'epoch' + epoch + '.pth')))
 
 
 if __name__ == '__main__':
@@ -174,7 +174,6 @@ if __name__ == '__main__':
                         test_loss += loss.item() * data.shape[0]
                     acc = acc / len(test_data)
                     test_loss = test_loss / len(test_data)
-                monitor.speak(())
                 monitor.speak('Test Loss: {:.6f},acc:{:.4f}'.format(test_loss, acc))
                 writer.add_scalar("train/test_loss", test_loss, iter_idx)
                 writer.add_scalar("train/acc", acc, iter_idx)
