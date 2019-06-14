@@ -7,6 +7,7 @@ import argparse
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 import sys
+
 sys.path.append('../')
 import torch.nn.functional as F
 from utils.utils import OutPutUtil
@@ -17,6 +18,7 @@ import models
 from torchvision.models import vgg19_bn
 from pathlib import Path
 import os
+
 
 # 为了根据iteration的次数进行输出和test，就不用函数的形式包裹train和test了
 
@@ -148,8 +150,10 @@ if __name__ == '__main__':
             if iter_idx % print_interval == 0:
                 torch.cuda.synchronize()
                 end = time.time()
-                monitor.speak('Iter: {}/{}\tLoss:{:.6f}\tLR: {}\ttime/batch'.format(iter_idx, n_iter, loss.item(), lr,
-                                                                                    (end - start) / batch_size))
+                monitor.speak(
+                    'Iter: {}/{}\tLoss:{:.6f}\tLR: {}\ttime/batch:{}'.format(iter_idx, n_iter, loss.item(), lr,
+                                                                             (end - start) / batch_size))
+                start = time.time()
             writer.add_scalar("train/train_loss", loss.item(), iter_idx)
 
             if iter_idx % val_interval == 0:
