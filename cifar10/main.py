@@ -82,7 +82,7 @@ if __name__ == '__main__':
     else:
         monitor = OutPutUtil(True, log=False, log_file=str(Path(args.checkpoint_path, './train.log')))
     monitor.speak(args)
-    writer = SummaryWriter()
+    writer = SummaryWriter(log_dir=args.checkpoint_path)
 
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
