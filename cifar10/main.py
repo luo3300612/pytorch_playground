@@ -7,6 +7,7 @@ import argparse
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 import sys
+sys.path.append('../')
 import torch.nn.functional as F
 from utils.utils import OutPutUtil
 import numpy as np
@@ -14,6 +15,7 @@ from torch.nn import DataParallel
 import time
 import models
 from torchvision.models import vgg19_bn
+from pathlib import Path
 
 
 # 为了根据iteration的次数进行输出和test，就不用函数的形式包裹train和test了
@@ -58,22 +60,20 @@ if __name__ == '__main__':
                         help='disables CUDA training')
     parser.add_argument('--adam', action='store_true', default=False,
                         help='use adam')
-    parser.add_argument('--log-path', type=str, default='./train.log',
-                        help='path to save log file (default: ./train.log)')
     parser.add_argument('--save', action='store_true', default=False,
                         help='save checkpoint (default:False)')
-    parser.add_argument('--save_path', type=str, default='./result',
+    parser.add_argument('--checkpoint_path', type=str, default='./result',
                         help='model save path (default: ./result)')
     parser.add_argument('--val', action='store_true', default=False,
                         help='val mode (default: False)')
-    parser.add_argument('--q', action='store_true', default=False,
-                        help='no output file (default: False)')
+    parser.add_argument('--no-log', action='store_true', default=False,
+                        help='no output log file (default: False)')
     args = parser.parse_args()
 
     if not args.q:
-        monitor = OutPutUtil(True, True, args.log_path)
+        monitor = OutPutUtil(True, True, log_file=str(Path(args.checkpoint_path, './train.log')))
     else:
-        monitor = OutPutUtil(True, log=False, log_file=args.log_path)
+        monitor = OutPutUtil(True, log=False, log_file=str(Path(args.checkpoint_path, './train.log')))
     monitor.speak(args)
     writer = SummaryWriter()
 
@@ -170,8 +170,10 @@ if __name__ == '__main__':
                 writer.add_scalar("train/acc", acc, iter_idx)
                 if test_loss < best_test_loss:
                     if args.save:
-                        save_checkpoint(iter_idx, net, optimizer, loss.item(), args.save_path)
-                    monitor.speak("test loss: {:.6f} < best: {:.6f},save if asked".format(test_loss, best_test_loss))
+                        save_checkpoint(iter_idx, net, optimizer, loss.item(), args.checkpoint_path)
+                        monitor.speak("test loss: {:.6f} < best: {:.6f},save".format(test_loss, best_test_loss))
+                    else:
+                        monitor.speak("test loss: {:.6f} < best: {:.6f},not save".format(test_loss, best_test_loss))
                     best_test_loss = test_loss
                 net.train()
         if iter_idx > n_iter:
