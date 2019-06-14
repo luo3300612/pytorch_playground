@@ -11,10 +11,10 @@ import torch.nn.functional as F
 from utils.utils import OutPutUtil
 import numpy as np
 from torch.nn import DataParallel
-from models.vgg import VGG
-from models.lenet import NewLeNet
 import time
+import models
 from torchvision.models import vgg19_bn
+
 
 # 为了根据iteration的次数进行输出和test，就不用函数的形式包裹train和test了
 
@@ -41,9 +41,9 @@ def save_checkpoint(epoch, model, optimizer, loss, save_path):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Pytorch AlexNet CIFAR10 Example')
-    # parser.add_argument('model', type=str,
-    #                     help='classifier')
+    parser = argparse.ArgumentParser(description='Pytorch CIFAR10 Example')
+    parser.add_argument('--model', type=str, default='vgg',
+                        help='classifier model (default: vgg)')
     parser.add_argument('--batch-size', type=int, default=128, metavar='N',
                         help='input batch size for training and testing (default: 128)')
     parser.add_argument('--val-interval', type=int, default=1000,
@@ -110,7 +110,7 @@ if __name__ == '__main__':
                              shuffle=True,
                              num_workers=4)
 
-    net = VGG().to(device)
+    net = models.setup(args)
     print(net)
     criterion = nn.CrossEntropyLoss()
     init_lr = args.lr
