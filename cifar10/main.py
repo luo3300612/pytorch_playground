@@ -42,7 +42,7 @@ def save_checkpoint(epoch, model, optimizer, loss, save_path):
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict,
         'loss': loss
-    }, str(Path(save_path, 'epoch' + epoch + '.pth')))
+    }, str(Path(save_path, 'epoch' + str(epoch) + '.pth')))
 
 
 if __name__ == '__main__':
