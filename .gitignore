@@ -14,3 +14,4 @@ resnet/train.log
 lenet/runs/*
 lenet/train.log
 */train.log
+cifar10/result

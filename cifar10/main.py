@@ -19,6 +19,7 @@ from torchvision.models import vgg19_bn
 from pathlib import Path
 import os
 import multiprocessing
+from .dataset import get_loader
 
 
 # 为了根据iteration的次数进行输出和test，就不用函数的形式包裹train和test了
@@ -87,36 +88,10 @@ if __name__ == '__main__':
     device = torch.device("cuda" if use_cuda else "cpu")
 
     sys.path.append('./')
-    train_data = torchvision.datasets.CIFAR10(root='../resnet/data/',
-                                              train=True,
-                                              transform=transforms.Compose([
-                                                  transforms.RandomCrop(32, 4),
-                                                  transforms.RandomHorizontalFlip(),
-                                                  transforms.ToTensor(),
-                                                  transforms.Normalize((0.4914, 0.4822, 0.4465),
-                                                                       (0.2023, 0.1994, 0.2010)),
-                                              ]),
-                                              download=True)
-    test_data = torchvision.datasets.CIFAR10(root='../resnet/data/',
-                                             train=False,
-                                             transform=transforms.Compose([
-                                                 transforms.ToTensor(),
-                                                 transforms.Normalize((0.4914, 0.4822, 0.4465),
-                                                                      (0.2023, 0.1994, 0.2010))
-                                             ]),
-                                             download=True)
+
+    train_loader, test_loader, train_data, test_data = get_loader(args)
 
     batch_size = args.batch_size
-    train_loader = DataLoader(train_data,
-                              batch_size=batch_size,
-                              shuffle=True,
-                              num_workers=multiprocessing.cpu_count(),
-                              pin_memory=True)
-    test_loader = DataLoader(test_data,
-                             batch_size=batch_size,
-                             shuffle=True,
-                             num_workers=multiprocessing.cpu_count(),
-                             pin_memory=True)
 
     net = models.setup(args).to(device)
     print(net)
