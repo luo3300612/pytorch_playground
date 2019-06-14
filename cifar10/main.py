@@ -16,7 +16,7 @@ import time
 import models
 from torchvision.models import vgg19_bn
 from pathlib import Path
-
+import os
 
 # 为了根据iteration的次数进行输出和test，就不用函数的形式包裹train和test了
 
@@ -69,6 +69,9 @@ if __name__ == '__main__':
     parser.add_argument('--no-log', action='store_true', default=False,
                         help='no output log file (default: False)')
     args = parser.parse_args()
+
+    if not os.path.exists(args.checkpoint_path):
+        os.mkdir(args.checkpoint_path)
 
     if not args.no_log:
         monitor = OutPutUtil(True, True, log_file=str(Path(args.checkpoint_path, './train.log')))
