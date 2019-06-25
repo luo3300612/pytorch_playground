@@ -181,3 +181,7 @@ class AlexNet(nn.Module):
 |AlexNet|78.06%||
 |VGG16|92.64%(暂时)|可能这就是现在人们浅层网络选择VGG而不选resnet20的原因|
 |ResNet20|91.99%|
+
+## image caption
+### NIC
+preprocess的问题
