@@ -8,41 +8,51 @@ import os
 import numpy as np
 import json
 from tqdm import tqdm
+from PIL import Image
 
 
 class FeatureExtractor(nn.Module):
     def __init__(self, opt):
+        super(FeatureExtractor, self).__init__()
         self.feat_size = opt.feat_size
-        self.cnn = resnet18(pretrained=True)
+        self.cnn = nn.Sequential(*list(resnet18(pretrained=True).children())[:-1])
         for param in self.cnn.parameters():
             param.requires_grad = False
-        num_ftrs = self.cnn.fc.in_features
-        self.cnn.fc = nn.Linear(num_ftrs, self.feat_size)
 
     def forward(self, x):
         return self.cnn(x)
 
 
 def main(args):
-    preprocess = T.Compose([T.Normalize([[0.485, 0.456, 0.406], [0.229, 0.224, 0.225]])])
-    net = FeatureExtractor(args)
+    preprocess = T.Compose([T.ToTensor(), T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+    net = FeatureExtractor(args).cuda()
     net.eval()
     dir_feat = args.output_dir + '_feat'
-
+    if not os.path.exists(dir_feat):
+        os.mkdir(dir_feat)
     dataset_coco = json.load(open(args.input_json, 'r'))
     images = dataset_coco['images']
 
     with torch.no_grad():
         for img_info in tqdm(images):
-            img = np.load(os.path.join(args.image_root, img_info['filepath'], img_info['filename']))
-            img = torch.from_numpy(img).cuda().unsqueeze(0)
-            feature = net(img).squeeze(0)
-            np.save(os.path.join(dir_feat, img_info['coco_id'], '.npy'), feature.cpu().float().numpy())
+            if os.path.exists(os.path.join(dir_feat, str(img_info['cocoid']) + '.npy')):
+                continue
+            img = np.array(Image.open(os.path.join(args.image_root, img_info['filepath'], img_info['filename'])))
+            if len(img.shape) == 2:
+                img = img[:, :, np.newaxis]
+                img = np.concatenate([img, img, img], axis=2)
+            img = preprocess(img).cuda().unsqueeze(0)
+            feature = net(img).squeeze()
+            # print(feature.shape)
+            np.save(os.path.join(dir_feat, str(img_info['cocoid']) + '.npy'), feature.cpu().float().numpy())
+            # break
+
+    print('Done')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='image feature prepare')
-    parser.add_argument('--input_json', required=True, help='input json file to process into hdf5')
+    parser.add_argument('--input_json', default='dataset_coco', help='input json file to process into hdf5')
     parser.add_argument('--output_dir', default='data', help='output h5 file')
 
     parser.add_argument('--image_root', help='img root directory')
