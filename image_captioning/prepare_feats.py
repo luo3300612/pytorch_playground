@@ -5,6 +5,9 @@ import torch.functional as F
 from torchvision import transforms as T
 import argparse
 import os
+import numpy as np
+import json
+from tqdm import tqdm
 
 
 class FeatureExtractor(nn.Module):
@@ -20,9 +23,21 @@ class FeatureExtractor(nn.Module):
         return self.cnn(x)
 
 
-def main():
+def main(args):
     preprocess = T.Compose([T.Normalize([[0.485, 0.456, 0.406], [0.229, 0.224, 0.225]])])
-    net = FeatureExtractor()
+    net = FeatureExtractor(args)
+    net.eval()
+    dir_feat = args.output_dir + '_feat'
+
+    dataset_coco = json.load(open(args.input_json, 'r'))
+    images = dataset_coco['images']
+
+    with torch.no_grad():
+        for img_info in tqdm(images):
+            img = np.load(os.path.join(args.image_root, img_info['filepath'], img_info['filename']))
+            img = torch.from_numpy(img).cuda().unsqueeze(0)
+            feature = net(img).squeeze(0)
+            np.save(os.path.join(dir_feat, img_info['coco_id'], '.npy'), feature.cpu().float().numpy())
 
 
 if __name__ == '__main__':
@@ -33,7 +48,4 @@ if __name__ == '__main__':
     parser.add_argument('--image_root', help='img root directory')
     parser.add_argument('--feat_size', type=int, default=512, help='img feature size')
     args = parser.parse_args()
-    net = FeatureExtractor(args)
-
-    coco_train = os.listdir(os.path.join(args.image_root, 'train'))
-    coco_val = os.listdir(os.path.join(args.image_root, 'val'))
+    main(args)
