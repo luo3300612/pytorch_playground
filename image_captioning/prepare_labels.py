@@ -3,6 +3,10 @@ import argparse
 import json
 from random import seed, shuffle
 import numpy as np
+import h5py
+import os
+from PIL import Image
+
 
 def build_vocab(imgs, args):
     count_thr = args.word_count_threshold
@@ -55,13 +59,41 @@ def build_vocab(imgs, args):
 
     return vocab
 
-def encode_captions(imgs,args,wtoi):
+
+def encode_captions(imgs, args, wtoi):
     max_length = args.max_length
     N = len(imgs)
     M = sum(len(img['final_captions']) for img in imgs)
 
     label_arrays = []
-    label_start_ix = np.zeros(N,dtype='uint32')
+    label_start_ix = np.zeros(N, dtype='uint32')
+    label_end_ix = np.zeros(N, dtyp='uint32')
+    label_length = np.zeros(M, dtype='uint32')
+    caption_counter = 0
+    counter = 1
+    for i, img in enumerate(imgs):
+        n = len(img['final_captions'])
+        assert n > 0, 'error: some image has no captions'
+
+        Li = np.zeros((n, max_length), dtype='uint32')
+        for j, s in enumerate(img['final_captions']):
+            label_length[caption_counter] = min(max_length, len(s))
+            caption_counter += 1
+            for k, w in enumerate(s):
+                if k < max_length:
+                    Li[j, k] = wtoi[w]
+        label_arrays.append(Li)
+        label_start_ix[i] = counter
+        label_end_ix[i] = counter + n - 1
+
+        counter += n
+
+    L = np.concatenate(label_arrays, axis=0)
+    assert L.shape[0] == N, 'length dont match'
+    assert np.all(label_length > 0), 'error: some caption had no words'
+
+    print('encoded captions to array of size', L.shape)
+    return L, label_start_ix, label_end_ix, label_length
 
 
 def main(args):
@@ -73,7 +105,33 @@ def main(args):
     itow = {i + 1: w for i, w in enumerate(vocab)}
     wtoi = {w: i + 1 for i, w in enumerate(vocab)}
 
-    L, label_start_ix, label_end_ix, label_langth = encode_captions(imgs, args, wtoi)
+    L, label_start_ix, label_end_ix, label_length = encode_captions(imgs, args, wtoi)
+
+    N = len(imgs)
+    f_lb = h5py.File(args.output_h5 + '_label.h5', 'w')
+    f_lb.create_dataset("labels", dtype='uint32', data=L)
+    f_lb.create_dataset("label_start_ix", dtype='uint32', data=label_start_ix)
+    f_lb.create_dataset("label_end_ix", dtype='uint32', data=label_end_ix)
+    f_lb.create_dataset("label_length", dtype='uint32', data=label_length)
+    f_lb.close()
+
+    # create output json file
+    out = {}
+    out['ix_to_word'] = itow
+    out['images'] = []
+    for i, img in enumerate(imgs):
+        jimg = {}
+        jimg['split'] = img['split']
+        if 'filename' in img: jimg['file_path'] = os.path.join(img['filepath'], img['filename'])
+        if 'cocoid' in img: jimg['id'] = img['cocoid']
+        if args.images_root != '':
+            with Image.open(os.path.join(args.images_root, img['filepath'], img['filename'])) as _img:
+                jimg['width'], jimg['height'] = _img.size
+
+        out['images'].append(jimg)
+
+    json.dump(out, open(args.output_json, 'w'))
+    print('wrote ', args.output_json)
 
 
 if __name__ == '__main__':
@@ -89,4 +147,5 @@ if __name__ == '__main__':
                         help='only words that occur more than this number of times will be put in vocab')
 
     args = parser.parse_args()
+    print(args)
     main(args)
