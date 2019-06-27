@@ -1,2 +1,4 @@
 data_feat/
 dataset_coco.json
+cocotalk.json
+cocotalk_label.h5

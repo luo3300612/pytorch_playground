@@ -67,7 +67,7 @@ def encode_captions(imgs, args, wtoi):
 
     label_arrays = []
     label_start_ix = np.zeros(N, dtype='uint32')
-    label_end_ix = np.zeros(N, dtyp='uint32')
+    label_end_ix = np.zeros(N, dtype='uint32')
     label_length = np.zeros(M, dtype='uint32')
     caption_counter = 0
     counter = 1
@@ -89,7 +89,7 @@ def encode_captions(imgs, args, wtoi):
         counter += n
 
     L = np.concatenate(label_arrays, axis=0)
-    assert L.shape[0] == N, 'length dont match'
+    assert L.shape[0] == M, 'length dont match {} != {}'.format(L.shape[0], N)
     assert np.all(label_length > 0), 'error: some caption had no words'
 
     print('encoded captions to array of size', L.shape)
@@ -138,6 +138,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='prepare coco label')
     parser.add_argument('--input_json', required=True, help='input json file to process into hdf5')
     parser.add_argument('--output_json', default='data.json', help='output json file')
+    parser.add_argument('--output_h5', default='data', help='output h5 file')
     parser.add_argument('--images_root', default='',
                         help='root location of images')
 
