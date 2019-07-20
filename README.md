@@ -185,3 +185,6 @@ class AlexNet(nn.Module):
 ## image caption
 ### NIC
 preprocess的问题
+
+## faster rcnn
+直接用from numpy将图片转成tensor会出错，需要用`torchvision.transforms.functional.to_tensor`
