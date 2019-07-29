@@ -111,7 +111,7 @@ if __name__ == '__main__':
     iter_idx = 0
     net.train()
     while True:
-        torch.cuda.synchronize()
+        # torch.cuda.synchronize()
         start = time.time()
         for batch_idx, (data, target) in enumerate(train_loader):
 
@@ -126,11 +126,11 @@ if __name__ == '__main__':
             loss.backward()
             optimizer.step()
             if iter_idx % print_interval == 0:
-                torch.cuda.synchronize()
+                # torch.cuda.synchronize()
                 end = time.time()
                 monitor.speak(
                     'Iter: {}/{}\tLoss:{:.6f}\tLR: {}\ttime/batch:{:.4f}'.format(iter_idx, n_iter, loss.item(), lr,
-                                                                                 (end - start) / batch_size))
+                                                                                 (end - start) / print_interval))
                 start = time.time()
             writer.add_scalar("train/train_loss", loss.item(), iter_idx)
 
