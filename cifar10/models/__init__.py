@@ -2,7 +2,7 @@ from .lenet import *
 from .vgg import *
 from .alexnet import *
 from .resnet import *
-
+from .googlenet import *
 
 def setup(opt):
     if opt.model == 'vgg':
@@ -13,6 +13,8 @@ def setup(opt):
         model = ResNet20()
     elif opt.model == 'alexnet':
         model = AlexNet()
+    elif opt.model == 'googlenet':
+        model = GoogLeNet()
     else:
         raise NotImplementedError
     return model
