@@ -93,8 +93,5 @@ class GoogLeNet(nn.Module):
                                          nn.Conv2d(in_channels, pool_proj, kernel_size=1),
                                          nn.BatchNorm2d(pool_proj),
                                          nn.ReLU(inplace=True)])
-        for key, value in inception.items():
-            for parameter in value.parameters():
-                self.register_parameter('p' + str(self.parameter_count), parameter)
-                self.parameter_count += 1
+        inception = nn.ModuleDict({key: value for key, value in inception.items()})
         return inception
