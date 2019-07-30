@@ -9,8 +9,11 @@ class GoogLeNet(nn.Module):
         self.parameter_count = 0
 
         self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1)
+        self.bn1 = nn.BatchNorm2d(64)
         self.conv2 = nn.Conv2d(64, 64, kernel_size=1)
+        self.bn2 = nn.BatchNorm2d(64)
         self.conv3 = nn.Conv2d(64, 192, kernel_size=3)
+        self.bn3 = nn.BatchNorm2d(192)
 
         self.inc3a = self._make_inception(192, 64, 96, 128, 16, 32, 32, 256)
         self.inc3b = self._make_inception(256, 128, 128, 192, 32, 96, 64, 480)
@@ -30,12 +33,12 @@ class GoogLeNet(nn.Module):
         self.fc = nn.Linear(1024, num_classes)
 
     def forward(self, x):
-        x = self.conv1(x)
+        x = self.bn1(self.conv1(x))
         x = F.relu(x)
         x = F.max_pool2d(x, 3, 2)
-        x = self.conv2(x)
+        x = self.bn2(self.conv2(x))
         x = F.relu(x)
-        x = self.conv3(x)
+        x = self.bn3(self.conv3(x))
         x = F.relu(x)
         x = F.max_pool2d(x, 3, 2)
 
@@ -72,17 +75,23 @@ class GoogLeNet(nn.Module):
         assert out_channels_1_1 + out_channels_3_3 + out_channels_5_5 + pool_proj == check
         inception = {}
         inception['1'] = nn.Sequential(*[nn.Conv2d(in_channels, out_channels_1_1, kernel_size=1),
+                                         nn.BatchNorm2d(out_channels_1_1),
                                          nn.ReLU(inplace=True)])
         inception['3'] = nn.Sequential(*[nn.Conv2d(in_channels, reduce_channels_3_3, kernel_size=1),
+                                         nn.BatchNorm2d(reduce_channels_3_3),
                                          nn.ReLU(inplace=True),
                                          nn.Conv2d(reduce_channels_3_3, out_channels_3_3, kernel_size=3, padding=1),
+                                         nn.BatchNorm2d(out_channels_3_3),
                                          nn.ReLU(inplace=True)])
         inception['5'] = nn.Sequential(*[nn.Conv2d(in_channels, reduce_channels_5_5, kernel_size=1),
+                                         nn.BatchNorm2d(reduce_channels_5_5),
                                          nn.ReLU(inplace=True),
                                          nn.Conv2d(reduce_channels_5_5, out_channels_5_5, kernel_size=5, padding=2),
+                                         nn.BatchNorm2d(out_channels_5_5),
                                          nn.ReLU(inplace=True)])
         inception['p'] = nn.Sequential(*[nn.MaxPool2d(kernel_size=3, stride=1, padding=1),
                                          nn.Conv2d(in_channels, pool_proj, kernel_size=1),
+                                         nn.BatchNorm2d(pool_proj),
                                          nn.ReLU(inplace=True)])
         for key, value in inception.items():
             for parameter in value.parameters():
