@@ -154,7 +154,7 @@ if __name__ == '__main__':
                 monitor.speak('Test Loss: {:.6f},acc:{:.4f}'.format(test_loss, acc))
                 writer.add_scalar("train/test_loss", test_loss, iter_idx)
                 writer.add_scalar("train/acc", acc, iter_idx)
-                if test_loss < best_test_loss or acc < best_test_acc:
+                if test_loss < best_test_loss or acc > best_test_acc:
                     if args.save:
                         save_checkpoint(iter_idx, net, optimizer, loss.item(), args.checkpoint_path)
                         monitor.speak("test loss: {:.6f}  best: {:.6f}, test acc: {:.4f} best: {:.4f} save".format(test_loss, best_test_loss,acc,best_test_acc))

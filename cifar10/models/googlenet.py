@@ -36,7 +36,8 @@ class GoogLeNet(nn.Module):
     def forward(self, x):
         x = self.bn1(self.conv1(x))
         x = F.relu(x)
-        x = F.max_pool2d(x, 3, 2, ceil_mode=True)
+        # cifar10图片太小，所以去掉这个maxpool
+        # x = F.max_pool2d(x, 3, 2, ceil_mode=True)
         x = self.bn2(self.conv2(x))
         x = F.relu(x)
         x = self.bn3(self.conv3(x))
