@@ -11,7 +11,9 @@ class VGG(nn.Module):
         self.block4 = self._make_layer(256, 512, 3)
         self.block5 = self._make_layer(512, 512, 3)
         self.fc1 = nn.Linear(512, 4096)
+        self.dropout1 = nn.Dropout(0.5)
         self.fc2 = nn.Linear(4096, 4096)
+        self.dropout2 = nn.Dropout(0.5)
         self.fc3 = nn.Linear(4096, num_classes)
         self._initialize_weights()
 
@@ -23,11 +25,13 @@ class VGG(nn.Module):
         x = self.block5(x)
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
+        x = self.dropout1(x)
         x = F.relu(self.fc2(x))
+        x = self.dropout2(x)
         x = self.fc3(x)
         return x
 
-    def _make_layer(self, input_channels, output_channels, repeat, batch_norm=True):
+    def _make_layer(self, input_channels, output_channels, repeat, batch_norm=False):
         layers = []
         layers.append(nn.Conv2d(input_channels, output_channels, kernel_size=3, stride=1, padding=1))
         if batch_norm:
