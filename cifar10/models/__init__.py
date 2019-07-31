@@ -3,6 +3,8 @@ from .vgg import *
 from .alexnet import *
 from .resnet import *
 from .googlenet import *
+import torchvision
+
 
 def setup(opt):
     if opt.model == 'vgg':
@@ -15,6 +17,9 @@ def setup(opt):
         model = AlexNet()
     elif opt.model == 'googlenet':
         model = GoogLeNet()
+    elif opt.model == 'torch_vgg':
+        kwargs = {'num_classes': 10}
+        model = torchvision.models.vgg16(**kwargs)
     else:
         raise NotImplementedError
     return model
