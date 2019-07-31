@@ -8,11 +8,12 @@ class GoogLeNet(nn.Module):
         super(GoogLeNet, self).__init__()
         self.parameter_count = 0
 
+        # 在ImageNet上分类的第一个卷积核是7×7stide=2的
         self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(64)
         self.conv2 = nn.Conv2d(64, 64, kernel_size=1)
         self.bn2 = nn.BatchNorm2d(64)
-        self.conv3 = nn.Conv2d(64, 192, kernel_size=3)
+        self.conv3 = nn.Conv2d(64, 192, kernel_size=3, padding=1)
         self.bn3 = nn.BatchNorm2d(192)
 
         self.inc3a = self._make_inception(192, 64, 96, 128, 16, 32, 32, 256)
