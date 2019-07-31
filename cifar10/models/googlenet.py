@@ -44,14 +44,14 @@ class GoogLeNet(nn.Module):
 
         x = self._inception_forward(x, self.inc3a)
         x = self._inception_forward(x, self.inc3b)
-        x = F.max_pool2d(x, 3, 2, 1)
+        x = F.max_pool2d(x, 3, 2)
 
         x = self._inception_forward(x, self.inc4a)
         x = self._inception_forward(x, self.inc4b)
         x = self._inception_forward(x, self.inc4c)
         x = self._inception_forward(x, self.inc4d)
         x = self._inception_forward(x, self.inc4e)
-        x = F.max_pool2d(x, 3, 2, 1)
+        x = F.max_pool2d(x, 3, 2)
 
         x = self._inception_forward(x, self.inc5a)
         x = self._inception_forward(x, self.inc5b)

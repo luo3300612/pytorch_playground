@@ -108,6 +108,7 @@ if __name__ == '__main__':
     print_interval = 10
 
     best_test_loss = 4
+    best_test_acc = 0
     iter_idx = 0
     net.train()
     while True:
@@ -125,6 +126,7 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+
             if iter_idx % print_interval == 0:
                 # torch.cuda.synchronize()
                 end = time.time()
@@ -152,13 +154,14 @@ if __name__ == '__main__':
                 monitor.speak('Test Loss: {:.6f},acc:{:.4f}'.format(test_loss, acc))
                 writer.add_scalar("train/test_loss", test_loss, iter_idx)
                 writer.add_scalar("train/acc", acc, iter_idx)
-                if test_loss < best_test_loss:
+                if test_loss < best_test_loss or acc < best_test_acc:
                     if args.save:
                         save_checkpoint(iter_idx, net, optimizer, loss.item(), args.checkpoint_path)
-                        monitor.speak("test loss: {:.6f} < best: {:.6f},save".format(test_loss, best_test_loss))
+                        monitor.speak("test loss: {:.6f}  best: {:.6f}, test acc: {:.4f} best: {:.4f} save".format(test_loss, best_test_loss,acc,best_test_acc))
                     else:
-                        monitor.speak("test loss: {:.6f} < best: {:.6f},not save".format(test_loss, best_test_loss))
+                        monitor.speak("test loss: {:.6f}  best: {:.6f}, test acc: {:.4f} best: {:.4f} not save".format(test_loss, best_test_loss,acc,best_test_acc))
                     best_test_loss = test_loss
+                    best_test_acc = acc
                 net.train()
         if iter_idx > n_iter:
             monitor.speak("Done")
