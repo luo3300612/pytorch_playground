@@ -33,7 +33,7 @@ class VGG(nn.Module):
         x = self.fc3(x)
         return x
 
-    def _make_layer(self, input_channels, output_channels, repeat, batch_norm=False):
+    def _make_layer(self, input_channels, output_channels, repeat, batch_norm=True):
         layers = []
         layers.append(nn.Conv2d(input_channels, output_channels, kernel_size=3, stride=1, padding=1))
         if batch_norm:
