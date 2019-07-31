@@ -36,23 +36,23 @@ class GoogLeNet(nn.Module):
     def forward(self, x):
         x = self.bn1(self.conv1(x))
         x = F.relu(x)
-        x = F.max_pool2d(x, 3, 2)
+        x = F.max_pool2d(x, 3, 2, ceil_mode=True)
         x = self.bn2(self.conv2(x))
         x = F.relu(x)
         x = self.bn3(self.conv3(x))
         x = F.relu(x)
-        x = F.max_pool2d(x, 3, 2)
+        x = F.max_pool2d(x, 3, 2, ceil_mode=True)
 
         x = self._inception_forward(x, self.inc3a)
         x = self._inception_forward(x, self.inc3b)
-        x = F.max_pool2d(x, 3, 2)
+        x = F.max_pool2d(x, 3, 2, ceil_mode=True)
 
         x = self._inception_forward(x, self.inc4a)
         x = self._inception_forward(x, self.inc4b)
         x = self._inception_forward(x, self.inc4c)
         x = self._inception_forward(x, self.inc4d)
         x = self._inception_forward(x, self.inc4e)
-        x = F.max_pool2d(x, 3, 2)
+        x = F.max_pool2d(x, 3, 2, ceil_mode=True)
 
         x = self._inception_forward(x, self.inc5a)
         x = self._inception_forward(x, self.inc5b)
@@ -90,7 +90,7 @@ class GoogLeNet(nn.Module):
                                          nn.Conv2d(reduce_channels_5_5, out_channels_5_5, kernel_size=5, padding=2),
                                          nn.BatchNorm2d(out_channels_5_5),
                                          nn.ReLU(inplace=True)])
-        inception['p'] = nn.Sequential(*[nn.MaxPool2d(kernel_size=3, stride=1, padding=1),
+        inception['p'] = nn.Sequential(*[nn.MaxPool2d(kernel_size=3, stride=1, padding=1, ceil_mode=True),
                                          nn.Conv2d(in_channels, pool_proj, kernel_size=1),
                                          nn.BatchNorm2d(pool_proj),
                                          nn.ReLU(inplace=True)])
