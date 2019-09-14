@@ -17,3 +17,4 @@ lenet/train.log
 cifar10/result
 faster-rcnn/timg.jpeg
 mask-rcnn/timg.jpeg
+lstm/.data

@@ -36,6 +36,7 @@ x += v
 `tensor.data`虽然可以使用，但是文档中查不到，且返回还是一个tensor，而tensor.item()则返回python类型的数值，要求tensor是一个一维张量
 #### 输入图片的tensor是uint8还是float有啥区别
 不知道
+#### 各种网络不同层的结构分别有什么区别，它们的性能怎样
 ### 坑
 dataset类的transform参数后要打括号，比如transform = ToTensor()，否则会报object...错误
 
@@ -98,7 +99,7 @@ x和bn分别做bn然后加到一起做relu，一开始我用一起做结果训�
 
 ### 源码对比结果
 * 源码中在relu前使用了batch normalization层
-* 源码中第一个下采样的maxpool是3*3 padding=1 stride=2的，而我的是2*2 padding=0 stride=2的，这有啥影响
+* 源码中第一个下采样的maxpool是3\*3 padding=1 stride=2的，而我的是2\*2 padding=0 stride=2的，这有啥影响
 * 源码中的relu使用的是就地操作nn.ReLU(inplace=True)，这样可以节省一点内存
 * 源码中卷积使用了bias=False参数
 * 源码中的avgpool使用的是Adaptiveavgpool，只要给输出的size就可以
@@ -171,16 +172,48 @@ class AlexNet(nn.Module):
 ```
 
 ## VGG
-不加BN的时候loss根本无法下降
+不加BN的时候loss根本无法下降，后来发现这是因为momentum的原因，把momentum去掉之后就可以缓慢下降了
+
+另一个问题是官方的网络里有AdaptiveAvgPool2d((7,7))的操作，没有这个操作lr在0.01时即便没有momentum
+loss也无法下降，这可能是因为下采样过多的原因？？
+
 有趣的现象是训练到后面acc变高但loss也变高
+
+## GoogLeNet
+直接用dict来做inception会出现问题，导致dict里面的参数没有register
+
+和VGG一样，没有BN train不动
+
+直接用ImageNet的结构是90.55%，去掉第一个Maxpool是92.74%
+
+GoogLeNet中Inception的四个分路的maxpool+1×1分路的最大池化是3×3 1 stride 1 padding的
+
+### 源码对比结果
+* GoogLeNet中的所有pool操作都有一个ceil_mode=True的参数，也就是在特征图上向上取整，在3×3的maxpool中没有使用padding，所以用向上取整来代替
+* GoogLeNet的Inception可以写成单独的class，不用像我这样写成字典，看起来很麻烦
+* Conv+bn+relu的结构也可以写成单独的类，避免重复写
+    ```python
+    class BasicConv2d(nn.Module):
+    
+        def __init__(self, in_channels, out_channels, **kwargs):
+            super(BasicConv2d, self).__init__()
+            self.conv = nn.Conv2d(in_channels, out_channels, bias=False, **kwargs)
+            self.bn = nn.BatchNorm2d(out_channels, eps=0.001)
+    
+        def forward(self, x):
+            x = self.conv(x)
+            x = self.bn(x)
+            return F.relu(x, inplace=True)
+    ```
 
 ## CIFAR10
 |Model|Acc||
 |---|---|---|
 |LeNet|75.06%||
 |AlexNet|78.06%||
-|VGG16|92.64%(暂时)|可能这就是现在人们浅层网络选择VGG而不选resnet20的原因|
+|VGG16|92.64%|可能这就是现在人们浅层网络选择VGG而不选resnet20的原因|
 |ResNet20|91.99%|
+|GoogLeNet|92.74%|
 
 ## image caption
 ### NIC
