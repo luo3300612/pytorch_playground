@@ -221,3 +221,11 @@ preprocess的问题
 
 ## faster rcnn
 直接用from numpy将图片转成tensor会出错，需要用`torchvision.transforms.functional.to_tensor`
+
+## LSTM
+refer to [here](https://www.jianshu.com/p/e091dba8eaaf)
+模型本来使用最后一个hidden state，结果不知是梯度的原因还是什么模型在测试集上的准确率一直是67.5，
+换成了所有time step hidden state的平均瞬间变成83.04%(sgd lr=0.1)
+lr0.01 m0.9 83.68
+lr 0.1 decay 0.9/5 82.82
+lr 0.1 decay 0.9/5 256 83.71

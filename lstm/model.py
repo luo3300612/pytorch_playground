@@ -23,14 +23,16 @@ class myLSTMCell(nn.Module):
 
 
 class myLSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, vocab_size, embedding_dim, max_length, batch_size, num_classes):
+    def __init__(self, opt):
         super(myLSTM, self).__init__()
-        self.hidden_size = hidden_size
-        self.batch_size = batch_size
-        self.core = myLSTMCell(input_size, hidden_size)
-        self.embed = nn.Embedding(vocab_size, embedding_dim)
-        self.max_length = max_length
-        self.num_classes = num_classes
+        self.input_size = opt.input_size
+        self.hidden_size = opt.hidden_size
+        self.vocab_size = opt.vocab_size
+        self.embedding_dim = opt.embedding_dim
+        self.core = myLSTMCell(self.input_size, self.hidden_size)
+        self.embed = nn.Embedding(self.vocab_size+1, self.embedding_dim)
+        self.max_length = opt.max_length
+        self.num_classes = opt.num_classes
         self.output = nn.Linear(self.hidden_size, self.num_classes)
 
     def init_weight(self, bs):
@@ -38,14 +40,16 @@ class myLSTM(nn.Module):
         return weight.new_zeros(bs, self.hidden_size), weight.new_zeros(bs, self.hidden_size)
 
     def forward(self, x):
-        state = self.init_weight(self.batch_size)
+        state = self.init_weight(x.shape[0])
+        outputs = []
         for i in range(self.max_length):
             xt = x[:, i]
             if torch.sum(xt) == 0:
                 break
             xt = self.embed(xt)
             state = self.core(xt, state)
-        x = self.output(state[0])
+            outputs.append(state[0].unsqueeze(2))
+        x = self.output(torch.mean(torch.cat(outputs,dim=2),dim=2))
         return x
         # x (bs,seq_len) one line is a seq
 
@@ -63,7 +67,8 @@ if __name__ == '__main__':
     # test lstm
 
     bs = 16
-    net = myLSTM(input_size=20, hidden_size=10, vocab_size=15, embedding_dim=20, max_length=10, batch_size=16,num_classes=2)
+    net = myLSTM(input_size=20, hidden_size=10, vocab_size=15, embedding_dim=20, max_length=10, batch_size=16,
+                 num_classes=2)
     x = np.random.randint(1, 15, (bs, 22))
     x = torch.from_numpy(x)
     output = net(x)
